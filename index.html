@@ -58,6 +58,15 @@
     .urgency-warning { border: 2px solid #f57c00; background: #fff8f0; }
     .urgency-safe .days { color: #43a047; }
 
+    .plan-expiry {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .expiry-warning { color: #f57c00; }
+    .expiry-danger { color: #e53935; }
+
     .section-title {
       font-size: 15px;
       font-weight: 600;
@@ -68,21 +77,6 @@
 
     /* Pick card page */
     .picker-label { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
-
-    .picker-select {
-      width: 100%;
-      padding: 14px 16px;
-      font-size: 16px;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      background: #fff;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 16px center;
-    }
-    .picker-select:focus { outline: none; border-color: #4a90d9; }
 
     .amount-input {
       width: 100%;
@@ -108,6 +102,61 @@
       cursor: pointer;
     }
     .picker-btn:active { background: #3a7bc8; }
+
+    /* Quick select grid */
+    .quick-select-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .quick-btn {
+      padding: 12px 8px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      color: #333;
+      transition: all 0.15s;
+    }
+    .quick-btn:active, .quick-btn.selected {
+      border-color: #4a90d9;
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    /* Search bar */
+    .search-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .search-input:focus { outline: none; border-color: #4a90d9; }
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: #fff;
+      border: 2px solid #4a90d9;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      z-index: 20;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .search-dropdown.hidden { display: none; }
+    .search-option {
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .search-option:hover, .search-option:active { background: #e3f2fd; }
 
     /* Result cards */
     .result-list { margin-top: 16px; }
@@ -178,6 +227,20 @@
       line-height: 1.5;
     }
 
+    /* ICS button */
+    .ics-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4a90d9;
+      background: #e3f2fd;
+      border: 2px solid #4a90d9;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
     /* Tab bar */
     .tab-bar {
       position: fixed;
@@ -218,36 +281,66 @@
   </div>
 
   <!-- Tab 1: 帳單看板 -->
-  <div id="tab-billing" class="tab-content active">
+  <div id="tab-billing" class="tab-content">
     <div class="section-title">繳費截止日倒數</div>
     <div id="billing-list"></div>
+    <button class="ics-btn" onclick="downloadICS()">📅 加入行事曆提醒（.ics）</button>
   </div>
 
   <!-- Tab 2: 選卡建議 -->
-  <div id="tab-pick" class="tab-content">
+  <div id="tab-pick" class="tab-content active">
     <div class="section-title">選卡建議</div>
-    <label class="picker-label">你要在哪裡消費？</label>
-    <select id="store-select" class="picker-select">
-      <option value="">請選擇消費地點</option>
-    </select>
+
     <input type="number" id="amount-input" class="amount-input" placeholder="輸入消費金額（選填）" min="0">
-    <button class="picker-btn" onclick="showRecommendation()">查詢建議</button>
+
+    <div class="section-title" style="margin-top:16px;">常用地點</div>
+    <div class="quick-select-grid">
+      <button class="quick-btn" onclick="selectStore('7-11', event)">7-11</button>
+      <button class="quick-btn" onclick="selectStore('全家', event)">全家</button>
+      <button class="quick-btn" onclick="selectStore('Line Pay（行動支付）', event)">Line Pay</button>
+      <button class="quick-btn" onclick="selectStore('高鐵', event)">高鐵</button>
+      <button class="quick-btn" onclick="selectStore('屈臣氏', event)">屈臣氏</button>
+      <button class="quick-btn" onclick="selectStore('王品集團', event)">王品集團</button>
+      <button class="quick-btn" onclick="selectStore('家樂福', event)">家樂福</button>
+      <button class="quick-btn" onclick="selectStore('新光三越', event)">新光三越</button>
+      <button class="quick-btn" onclick="selectStore('momo 購物網', event)">momo購物</button>
+      <button class="quick-btn" onclick="selectStore('蝦皮購物', event)">蝦皮購物</button>
+    </div>
+
+    <div class="search-wrapper" style="margin-top:16px; position:relative;">
+      <input type="text" id="store-search" class="search-input" placeholder="🔍 搜尋其他地點..." oninput="onSearchInput()" autocomplete="off">
+      <div id="search-dropdown" class="search-dropdown hidden"></div>
+    </div>
+
     <div id="result-list" class="result-list hidden"></div>
+  </div>
+
+  <!-- Tab 3: 額度追蹤 -->
+  <div id="tab-quota" class="tab-content">
+    <div class="section-title">回饋額度追蹤</div>
+    <p style="font-size:13px; color:#888; margin-bottom:16px;">每月手動更新已回饋金額，系統會在帳單截止日自動重置。</p>
+    <div id="quota-list"></div>
   </div>
 
   <!-- Bottom Tab Bar -->
   <div class="tab-bar">
-    <button class="active" onclick="switchTab('billing', this)">
+    <button onclick="switchTab('billing', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
       帳單
     </button>
-    <button onclick="switchTab('pick', this)">
+    <button class="active" onclick="switchTab('pick', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
       </svg>
       選卡
+    </button>
+    <button onclick="switchTab('quota', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      額度
     </button>
   </div>
 
@@ -263,25 +356,34 @@ const cards = [
   { name: "Pi 拍錢包卡", bank: "玉山銀行", billingDay: 15, dueDay: 30 },
 ];
 
+// ============ 方案到期資料 ============
+
+const rewardExpiry = [
+  { cardName: "CUBE 卡", planName: "日本賞", expiryDate: "2026/4/30" },
+  { cardName: "CUBE 卡", planName: "玩數位/樂饗購/趣旅行/集精選/慶生月", expiryDate: "2026/6/30" },
+  { cardName: "Richart 卡", planName: "7大方案（好饗刷/天天刷等）", expiryDate: "2026/6/30" },
+  { cardName: "街口聯名卡", planName: "3.5%精選通路", expiryDate: "2026/12/31" },
+  { cardName: "Unicard", planName: "百大指定消費加碼", expiryDate: "2026/6/30" },
+  { cardName: "U Bear 卡", planName: "熊任務/熊好刷/熊潮流", expiryDate: "2026/8/31" },
+  { cardName: "Pi 拍錢包卡", planName: "加碼方案", expiryDate: "2026/8/31" },
+];
+
 // ============ 回饋資料庫 ============
-// 每個消費地點列出所有可能的卡片選項，按回饋率排序
-// rate: 回饋百分比, type: 回饋類型, pay: 建議支付方式
-// cubePlan: 需要切換的 CUBE 方案, note: 額外注意事項
 
 const recommendations = [
   {
     store: "全聯",
     options: [
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "集精選", note: "不可用 Line Pay" },
-      { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "Apple Pay / 直刷", note: "全聯不列入百大指定消費，僅一般消費" },
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1% 無上限" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "不可用 Line Pay" },
+      { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷 / Apple Pay", note: "全聯不列入百大指定消費，僅一般消費" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1% 無上限" },
     ]
   },
   {
     store: "7-11",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.8, type: "台新Point", pay: "台新 Pay", note: "限台新 Pay，其他支付不回饋", cubePlan: null },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "集精選", note: "不可用 Line Pay" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.8, type: "台新Point", pay: "台新 Pay", richartPlan: "Pay著刷", note: "限台新 Pay，其他支付不回饋" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "不可用 Line Pay" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "街口支付", note: "超商限街口支付綁定才有 1%" },
     ]
   },
@@ -289,54 +391,54 @@ const recommendations = [
     store: "全家",
     options: [
       { card: "Pi 拍錢包卡", bank: "玉山銀行", rate: 5, type: "P幣", pay: "Pi 拍錢包", note: "每月上限 100 P幣" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.8, type: "台新Point", pay: "台新 Pay", note: "限台新 Pay" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "集精選", note: "不可用 Line Pay" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.8, type: "台新Point", pay: "台新 Pay", richartPlan: "Pay著刷", note: "限台新 Pay" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "不可用 Line Pay" },
     ]
   },
   {
     store: "50嵐",
     options: [
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內餐飲（小額支付平台）" },
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1%" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（小額支付平台）" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷", note: "一般消費 1%" },
     ]
   },
   {
     store: "路易莎咖啡",
     options: [
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", cubePlan: null, note: "好饗刷，需確認 MCC 為餐廳" },
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1%" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷，需確認 MCC 為餐廳" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
   {
     store: "星巴克",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "好饗刷（全臺餐飲）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1%" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（全臺餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
   {
     store: "屈臣氏",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路，不限支付方式" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "天天刷（藥妝藥局）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內藥妝" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路，不限支付方式" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（藥妝藥局）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內藥妝" },
     ]
   },
   {
     store: "康是美",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "天天刷（藥妝藥局）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內藥妝" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（藥妝藥局）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內藥妝" },
     ]
   },
   {
     store: "台灣大哥大",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1% 無上限" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1% 無上限" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷", note: "一般消費 1%" },
       { card: "Pi 拍錢包卡", bank: "玉山銀行", rate: 1, type: "P幣", pay: "直刷", note: "一般消費 1%" },
     ]
@@ -344,31 +446,31 @@ const recommendations = [
   {
     store: "Claude（AI 訂閱）",
     options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（AI 服務）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "AI 工具指定消費" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 3, type: "現金回饋", pay: "直刷", note: "網路消費 3%（加碼每期上限 150 元）" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", note: "數趣刷（AI 服務）" },
     ]
   },
   {
     store: "ChatGPT / Gemini（AI 訂閱）",
     options: [
       { card: "U Bear 卡", bank: "玉山銀行", rate: 10, type: "現金回饋", pay: "直刷", note: "指定數位訂閱 10%！每期上限 100 元" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", note: "數趣刷（AI 服務）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（AI 服務）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "AI 工具指定消費" },
     ]
   },
   {
     store: "高鐵",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路，不限支付方式" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "天天刷（通勤交通）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "趣旅行", note: "國內指定交通" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路，不限支付方式" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（通勤交通）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "趣旅行", note: "國內指定交通" },
     ]
   },
   {
     store: "國光客運",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1% 無上限" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1% 無上限" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷", note: "一般消費 1%" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 1, type: "現金回饋", pay: "直刷", note: "一般消費 1%" },
     ]
@@ -376,7 +478,7 @@ const recommendations = [
   {
     store: "健身工廠",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1% 無上限，回饋最實用" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1% 無上限，回饋最實用" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷", note: "一般消費 1%" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 1, type: "現金回饋", pay: "直刷", note: "一般消費 1%，現金直接折抵" },
     ]
@@ -384,23 +486,23 @@ const recommendations = [
   {
     store: "Uber Eats",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路（外送）" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "好饗刷（外送平台）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "外送平台指定消費" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
     ]
   },
   {
     store: "foodpanda",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路（外送）" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "好饗刷（外送平台）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "外送平台指定消費" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
     ]
   },
   {
     store: "蝦皮購物",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", note: "數趣刷（網購平台）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（網購平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "網購平台指定消費" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 3, type: "現金回饋", pay: "直刷", note: "網路消費 3%（加碼每期上限 150 元）" },
     ]
@@ -408,7 +510,7 @@ const recommendations = [
   {
     store: "momo 購物網",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", note: "數趣刷（網購平台）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（網購平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "網購平台指定消費" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 3, type: "現金回饋", pay: "直刷", note: "網路消費 3%（加碼每期上限 150 元）" },
     ]
@@ -416,32 +518,32 @@ const recommendations = [
   {
     store: "麥當勞",
     options: [
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內餐飲（麥當勞指定）" },
-      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "任意支付", note: "一般消費 1%" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（麥當勞指定）" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷", note: "一般消費 1%" },
     ]
   },
   {
     store: "新光三越",
     options: [
-      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "任意支付", note: "精選通路（百貨）" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "大筆刷（指定百貨）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "國內指定百貨" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（指定百貨）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內指定百貨" },
     ]
   },
   {
     store: "家樂福",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "天天刷（超商量販）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（超商量販）" },
       { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買），簡單選" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "集精選", note: "量販指定消費" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "量販指定消費" },
     ]
   },
   {
     store: "UNIQLO",
     options: [
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "大筆刷（時尚品味），限街邊獨立店或官網" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "樂饗購", note: "日系購物（UNIQLO 網路商店/直營店）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（時尚品味），限街邊獨立店或官網" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "日系購物（UNIQLO 網路商店/直營店）" },
       { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買），限街邊獨立店" },
     ]
   },
@@ -449,7 +551,7 @@ const recommendations = [
     store: "Netflix",
     options: [
       { card: "U Bear 卡", bank: "玉山銀行", rate: 10, type: "現金回饋", pay: "直刷", note: "指定數位訂閱 10%！每期上限 100 元" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", note: "數趣刷（遊戲影音）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（遊戲影音）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "數位/串流平台" },
     ]
   },
@@ -457,8 +559,24 @@ const recommendations = [
     store: "中油（直營站）",
     options: [
       { card: "U Bear 卡", bank: "玉山銀行", rate: 6, type: "現金+e point", pay: "中油 Pay", note: "月消費滿 3,000 元+登錄，含基本1%+網購2%+加碼3%" },
-      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", note: "天天刷（加油充電）" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "Apple Pay / 直刷", cubePlan: "集精選", note: "指定加油" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（加油充電）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "指定加油" },
+    ]
+  },
+  {
+    store: "王品集團",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（王品集團全品牌）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（限街邊店，非百貨內）" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "Line Pay（行動支付）",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 3.5, type: "e point", pay: "Line Pay", note: "百大通路任意選，選 LINE Pay 為指定通路之一，可獲 2.5% 加碼 + 1% 基本 = 3.5%" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "Line Pay", note: "精選通路，Line Pay 適用" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 2, type: "台新Point", pay: "Line Pay", richartPlan: "假日刷", note: "假日刷，限假日使用" },
     ]
   },
 ];
@@ -510,12 +628,31 @@ function renderBilling() {
   const list = document.getElementById("billing-list");
   list.innerHTML = "";
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   groups.forEach(group => {
     const c = group[0];
     const dueDays = getDaysUntil(c.dueDay);
     const billingDays = getDaysUntil(c.billingDay);
     const urgency = getUrgencyClass(dueDays);
     const names = group.map(x => x.name).join("、");
+
+    // Build expiry info for cards in this group
+    let expiryHtml = "";
+    group.forEach(card => {
+      const entries = rewardExpiry.filter(e => e.cardName === card.name);
+      entries.forEach(entry => {
+        const [y, m, d] = entry.expiryDate.split("/").map(Number);
+        const expiry = new Date(y, m - 1, d);
+        expiry.setHours(0, 0, 0, 0);
+        const diff = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+        let cls = "";
+        if (diff <= 7) cls = "expiry-danger";
+        else if (diff <= 30) cls = "expiry-warning";
+        expiryHtml += `<div class="${cls}">方案有效至 ${entry.expiryDate}（${entry.planName}，還有 ${diff} 天）</div>`;
+      });
+    });
 
     const el = document.createElement("div");
     el.className = "card-item";
@@ -534,6 +671,7 @@ function renderBilling() {
           <div class="date-text">${formatDate(c.dueDay)}</div>
         </div>
       </div>
+      ${expiryHtml ? `<div class="plan-expiry">${expiryHtml}</div>` : ""}
     `;
     list.appendChild(el);
   });
@@ -541,34 +679,41 @@ function renderBilling() {
 
 // ============ 選卡建議 ============
 
-function initPicker() {
-  const select = document.getElementById("store-select");
-  recommendations.forEach(r => {
-    const opt = document.createElement("option");
-    opt.value = r.store;
-    opt.textContent = r.store;
-    select.appendChild(opt);
-  });
+function selectStore(storeName, evt) {
+  document.getElementById("store-search").value = "";
+  document.getElementById("search-dropdown").classList.add("hidden");
+  document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
+  if (evt && evt.target) evt.target.classList.add("selected");
+  showRecommendationFor(storeName);
 }
 
-function showRecommendation() {
-  const store = document.getElementById("store-select").value;
+function onSearchInput() {
+  const query = document.getElementById("store-search").value.trim().toLowerCase();
+  const dropdown = document.getElementById("search-dropdown");
+  if (!query) { dropdown.classList.add("hidden"); return; }
+  const matches = recommendations.filter(r => r.store.toLowerCase().includes(query));
+  if (matches.length === 0) { dropdown.classList.add("hidden"); return; }
+  dropdown.innerHTML = matches.map(r =>
+    `<div class="search-option" onclick="pickFromSearch('${r.store.replace(/'/g, "\\'")}')">${r.store}</div>`
+  ).join("");
+  dropdown.classList.remove("hidden");
+}
+
+function pickFromSearch(storeName) {
+  document.getElementById("store-search").value = storeName;
+  document.getElementById("search-dropdown").classList.add("hidden");
+  document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
+  showRecommendationFor(storeName);
+}
+
+function showRecommendationFor(storeName) {
   const amountStr = document.getElementById("amount-input").value;
   const amount = amountStr ? parseInt(amountStr) : 0;
   const listEl = document.getElementById("result-list");
 
-  if (!store) {
-    listEl.classList.add("hidden");
-    return;
-  }
+  const rec = recommendations.find(r => r.store === storeName);
+  if (!rec) { listEl.classList.add("hidden"); return; }
 
-  const rec = recommendations.find(r => r.store === store);
-  if (!rec) {
-    listEl.classList.add("hidden");
-    return;
-  }
-
-  // Check if any option needs CUBE plan switching
   const cubePlans = rec.options.filter(o => o.cubePlan).map(o => o.cubePlan);
   const uniqueCubePlans = [...new Set(cubePlans)];
 
@@ -591,11 +736,11 @@ function showRecommendation() {
         </div>
         <div class="result-reason">${opt.note}</div>
         ${opt.cubePlan ? `<div class="result-note">需切換 CUBE 方案為「${opt.cubePlan}」（每日限切換 1 次）</div>` : ""}
+        ${opt.richartPlan ? `<div class="result-note">需切換 Richart 方案為「${opt.richartPlan}」（每日限切換 1 次）</div>` : ""}
       </div>
     `;
   });
 
-  // Add CUBE switch reminder if applicable
   if (uniqueCubePlans.length > 0) {
     const topCube = rec.options.find(o => o.cubePlan);
     if (topCube && rec.options.indexOf(topCube) === 0) {
@@ -620,12 +765,180 @@ function switchTab(tabName, btn) {
   btn.classList.add("active");
 }
 
+// ============ ICS 下載 ============
+
+function downloadICS() {
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//信用卡管家//TW", "CALSCALE:GREGORIAN"];
+
+  rewardExpiry.forEach((item, idx) => {
+    const [y, m, d] = item.expiryDate.split("/").map(Number);
+    const dateStr = `${y}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}`;
+    const alarmDate = new Date(y, m - 1, d - 1);
+    const alarmStr = `${alarmDate.getFullYear()}${String(alarmDate.getMonth()+1).padStart(2,'0')}${String(alarmDate.getDate()).padStart(2,'0')}T220000`;
+
+    lines.push("BEGIN:VEVENT");
+    lines.push(`UID:creditcard-expiry-${idx}@creditcard-personal`);
+    lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
+    lines.push(`DTEND;VALUE=DATE:${dateStr}`);
+    lines.push(`SUMMARY:信用卡回饋到期：${item.cardName} ${item.planName}`);
+    lines.push(`DESCRIPTION:${item.cardName} 的「${item.planName}」回饋方案將於 ${item.expiryDate} 到期。`);
+    lines.push("BEGIN:VALARM");
+    lines.push("ACTION:DISPLAY");
+    lines.push(`TRIGGER;VALUE=DATE-TIME:${alarmStr}`);
+    lines.push(`DESCRIPTION:明天到期：${item.cardName} ${item.planName}`);
+    lines.push("END:VALARM");
+    lines.push("END:VEVENT");
+  });
+
+  lines.push("END:VCALENDAR");
+
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "creditcard-expiry-reminders.ics";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ 額度追蹤 ============
+
+const quotaConfig = [
+  { id: "ubear-online", card: "U Bear 卡", name: "網購加碼", limit: 150, unit: "元", resetDay: 15, note: "每期上限 $150（加碼 3%，超過後回饋 1%）" },
+  { id: "ubear-digital", card: "U Bear 卡", name: "數位訂閱加碼", limit: 100, unit: "元", resetDay: 15, note: "每期上限 $100（指定訂閱 10%）" },
+  { id: "jkopay-select", card: "街口聯名卡", name: "精選通路", limit: 10000, unit: "街口幣", resetDay: 7, note: "每月上限 10,000 街口幣（3.5%）" },
+  { id: "unicard-elite", card: "Unicard", name: "百大加碼", limit: 1000, unit: "點", resetDay: 15, note: "每月上限 1,000 點（簡單選）/ 5,000 點（UP選）" },
+];
+
+function getQuotaResetDate(resetDay) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  let reset = new Date(year, month, resetDay);
+  if (reset <= now) reset = new Date(year, month + 1, resetDay);
+  return reset;
+}
+
+function getQuotaStorageKey(id) {
+  const now = new Date();
+  const config = quotaConfig.find(q => q.id === id);
+  const resetDay = config.resetDay;
+  const periodMonth = now.getDate() < resetDay ? now.getMonth() : now.getMonth() + 1;
+  const periodYear = now.getDate() < resetDay && now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  return `quota-${id}-${periodYear}-${periodMonth}`;
+}
+
+function saveQuota(id, value) {
+  localStorage.setItem(getQuotaStorageKey(id), value);
+  renderQuota();
+}
+
+function renderQuota() {
+  const list = document.getElementById("quota-list");
+  if (!list) return;
+  list.innerHTML = "";
+
+  quotaConfig.forEach(q => {
+    const key = getQuotaStorageKey(q.id);
+    const used = parseFloat(localStorage.getItem(key) || "0");
+    const pct = Math.min(100, Math.round(used / q.limit * 100));
+    const resetDate = getQuotaResetDate(q.resetDay);
+    const resetStr = `${resetDate.getMonth()+1}/${resetDate.getDate()}`;
+
+    let barColor = "#4a90d9";
+    if (pct >= 100) barColor = "#e53935";
+    else if (pct >= 80) barColor = "#f57c00";
+
+    const el = document.createElement("div");
+    el.className = "card-item";
+    el.innerHTML = `
+      <div class="card-name">${q.card} — ${q.name}</div>
+      <div class="card-bank" style="margin-bottom:8px;">${q.note}</div>
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <span style="color:#666;">已使用：<strong>${used} ${q.unit}</strong></span>
+        <span style="color:#666;">上限：${q.limit} ${q.unit}</span>
+      </div>
+      <div style="background:#f0f0f0; border-radius:6px; height:10px; margin-bottom:8px; overflow:hidden;">
+        <div style="background:${barColor}; height:100%; width:${pct}%; border-radius:6px; transition:width 0.3s;"></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="number" id="input-${q.id}" class="amount-input" style="margin-top:0; flex:1;"
+          placeholder="更新已使用金額" min="0" max="${q.limit}" value="${used > 0 ? used : ''}">
+        <button onclick="saveQuota('${q.id}', document.getElementById('input-${q.id}').value || 0)"
+          class="picker-btn" style="margin-top:0; width:auto; padding:14px 20px; font-size:14px;">更新</button>
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-top:6px;">下次重置：${resetStr}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ============ 瀏覽器通知 ============
+
+function checkExpiryNotifications() {
+  if (!("Notification" in window)) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const triggered = JSON.parse(localStorage.getItem("notified-expiry") || "[]");
+
+  const toNotify = rewardExpiry.filter(item => {
+    const [y, m, d] = item.expiryDate.split("/").map(Number);
+    const expiry = new Date(y, m - 1, d);
+    expiry.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    const key = `${item.cardName}-${item.expiryDate}`;
+    return diff === 1 && !triggered.includes(key);
+  });
+
+  if (toNotify.length === 0) return;
+
+  function fireNotifications() {
+    toNotify.forEach(item => {
+      new Notification("信用卡回饋明天到期！", {
+        body: `${item.cardName}「${item.planName}」方案將於明天 ${item.expiryDate} 到期`,
+        icon: "/favicon.ico"
+      });
+    });
+    const newTriggered = [...triggered, ...toNotify.map(i => `${i.cardName}-${i.expiryDate}`)];
+    localStorage.setItem("notified-expiry", JSON.stringify(newTriggered));
+  }
+
+  const now = new Date();
+  const target22 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0);
+
+  if (now >= target22) {
+    if (Notification.permission === "granted") {
+      fireNotifications();
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(p => { if (p === "granted") fireNotifications(); });
+    }
+  } else {
+    const msUntil22 = target22 - now;
+    setTimeout(() => {
+      if (Notification.permission === "granted") {
+        fireNotifications();
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(p => { if (p === "granted") fireNotifications(); });
+      }
+    }, msUntil22);
+  }
+}
+
+if ("Notification" in window && Notification.permission === "default") {
+  setTimeout(() => {
+    Notification.requestPermission();
+  }, 3000);
+}
+
+checkExpiryNotifications();
+
 // ============ 初始化 ============
 
 renderBilling();
-initPicker();
+renderQuota();
 
-// 儲存資料到 localStorage
 localStorage.setItem("creditcard-personal-cards", JSON.stringify(cards));
 localStorage.setItem("creditcard-personal-recommendations", JSON.stringify(recommendations));
 </script>
