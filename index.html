@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>信用卡管家</title>
+  <title>Hackcard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -58,9 +58,9 @@
     .urgency-warning { border: 2px solid #f57c00; background: #fff8f0; }
     .urgency-safe .days { color: #43a047; }
 
-    .card-item.paid { opacity: 0.5; }
-    .card-item.paid .urgency-danger { border-color: #ccc; background: #f8f8f8; }
-    .card-item.paid .urgency-danger .days { color: #aaa; }
+    .date-block.paid-dim { opacity: 0.35; }
+    .date-block.paid-dim .days { color: #aaa !important; }
+    .date-block.paid-dim { border-color: #ddd !important; background: #f8f8f8 !important; }
     .paid-btn {
       margin-top: 12px;
       width: 100%;
@@ -309,7 +309,7 @@
 <body>
 
   <div class="header">
-    <h1>信用卡管家</h1>
+    <h1>Hackcard</h1>
   </div>
 
   <!-- Tab 1: 帳單看板 -->
@@ -706,22 +706,19 @@ function renderBilling() {
       });
     });
 
+    const dimClass = isPaid ? " paid-dim" : "";
     const el = document.createElement("div");
-    el.className = "card-item" + (isPaid ? " paid" : "");
+    el.className = "card-item";
     el.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div>
-          <div class="card-name">${names}</div>
-          <div class="card-bank">${c.bank}</div>
-        </div>
-      </div>
+      <div class="card-name">${names}</div>
+      <div class="card-bank">${c.bank}</div>
       <div class="dates">
-        <div class="date-block">
+        <div class="date-block${dimClass}">
           <div class="label">帳單截止</div>
           <div class="days">${billingDays} 天</div>
           <div class="date-text">${formatFullDate(c.billingDay)}</div>
         </div>
-        <div class="date-block ${urgency}">
+        <div class="date-block ${urgency}${dimClass}">
           <div class="label">繳費截止</div>
           <div class="days">${dueDays} 天</div>
           <div class="date-text">${formatFullDate(c.dueDay)}</div>
@@ -895,9 +892,24 @@ function getQuotaStorageKey(id) {
   return `quota-${id}-${periodYear}-${periodMonth}`;
 }
 
-function saveQuota(id, value) {
-  localStorage.setItem(getQuotaStorageKey(id), value);
+function addQuota(id) {
+  const input = document.getElementById("input-" + id);
+  const val = parseFloat(input.value);
+  if (!val || val <= 0) return;
+  const key = getQuotaStorageKey(id);
+  const current = parseFloat(localStorage.getItem(key) || "0");
+  localStorage.setItem(key, current + val);
+  input.value = "";
   renderQuota();
+}
+
+function deleteQuota(id) {
+  const config = quotaConfig.find(q => q.id === id);
+  const confirmed = window.confirm(`確定要清除「${config.card} ${config.name}」的本期已使用紀錄嗎？`);
+  if (confirmed) {
+    localStorage.removeItem(getQuotaStorageKey(id));
+    renderQuota();
+  }
 }
 
 function renderQuota() {
@@ -930,9 +942,11 @@ function renderQuota() {
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <input type="number" id="input-${q.id}" class="amount-input" style="margin-top:0; flex:1;"
-          placeholder="更新已使用金額" min="0" max="${q.limit}" value="${used > 0 ? used : ''}">
-        <button onclick="saveQuota('${q.id}', document.getElementById('input-${q.id}').value || 0)"
-          class="picker-btn" style="margin-top:0; width:auto; padding:14px 20px; font-size:14px;">更新</button>
+          placeholder="新增金額" min="0">
+        <button onclick="addQuota('${q.id}')"
+          style="margin-top:0; padding:14px 18px; font-size:14px; font-weight:600; background:#4a90d9; color:#fff; border:none; border-radius:10px; cursor:pointer; white-space:nowrap;">新增</button>
+        <button onclick="deleteQuota('${q.id}')"
+          style="margin-top:0; padding:14px 18px; font-size:14px; font-weight:600; background:#e53935; color:#fff; border:none; border-radius:10px; cursor:pointer; white-space:nowrap;">刪除</button>
       </div>
       <div style="font-size:11px; color:#aaa; margin-top:6px;">下次重置：${resetStr}</div>
     `;
