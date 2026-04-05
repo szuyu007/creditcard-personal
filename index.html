@@ -326,13 +326,15 @@
       <button class="quick-btn" onclick="selectStore('7-11', event)">7-11</button>
       <button class="quick-btn" onclick="selectStore('全家', event)">全家</button>
       <button class="quick-btn" onclick="selectStore('Line Pay（行動支付）', event)">Line Pay</button>
-      <button class="quick-btn" onclick="selectStore('高鐵', event)">高鐵</button>
       <button class="quick-btn" onclick="selectStore('屈臣氏', event)">屈臣氏</button>
+      <button class="quick-btn" onclick="selectStore('高鐵', event)">高鐵</button>
       <button class="quick-btn" onclick="selectStore('王品集團', event)">王品集團</button>
       <button class="quick-btn" onclick="selectStore('家樂福', event)">家樂福</button>
       <button class="quick-btn" onclick="selectStore('新光三越', event)">新光三越</button>
-      <button class="quick-btn" onclick="selectStore('momo 購物網', event)">momo購物</button>
-      <button class="quick-btn" onclick="selectStore('蝦皮購物', event)">蝦皮購物</button>
+      <button class="quick-btn" onclick="selectStore('瓦城集團', event)">瓦城集團</button>
+      <button class="quick-btn" onclick="selectStore('饗賓集團', event)">饗賓集團</button>
+      <button class="quick-btn" onclick="selectStore('漢來美食', event)">漢來美食</button>
+      <button class="quick-btn" onclick="selectStore('街口支付', event)">街口支付</button>
     </div>
 
     <div class="section-title" style="margin-top:16px;">搜尋其他</div>
@@ -521,6 +523,7 @@ const recommendations = [
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
     ]
   },
   {
@@ -529,6 +532,7 @@ const recommendations = [
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
     ]
   },
   {
@@ -600,7 +604,78 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（王品集團全品牌）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（限街邊店，非百貨內）" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "王品瘋Pay", note: "百大指定消費（餐飲美食），簡單選。注意：需使用王品瘋Pay付款" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "饗賓集團",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：饗 A Joy、饗饗、旭集、旨醞鐵板、URBAN PARADISE、饗食天堂、果然匯、小福利麻辣鍋、朵頤牛排、開飯川食堂、饗泰多、真珠台灣佳味、貓將" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "瓦城集團",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：瓦城、非常泰、大心、時時香、樂子 the Diner、1010湘" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "漢來美食",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：漢來海港、島語、漢來蔬食、漢來名人坊、東方樓、聚薈所、漢來上海湯包、溜溜酸菜魚、上菜片皮鴨、樂蔬、翠園粵菜、漢來軒、焰、PAVO餐酒館、日本料理弁慶、福園台菜海鮮、HI-LAI CAFE 等" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "乾杯燒肉",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：乾杯、老乾杯、KANPAI CLASSIC、和牛47、黑毛屋、黑毛屋本家、黑毛屋招待所、高木和牛食堂、牛舌佑介" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "鼎王餐飲",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：鼎王麻辣鍋、無老鍋、麻一點、六米滷味" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "爭鮮餐飲",
+    options: [
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：爭鮮、點爭鮮、爭鮮PLUS、定食8、爭鮮gogo" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "EZTABLE",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲訂位平台）" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "街口支付",
+    options: [
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "街口支付", note: "精選通路消費 3.5%（每月上限 10,000 街口幣）；一般通路 1% 無上限" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 2, type: "台新Point", pay: "街口支付", richartPlan: "假日刷", note: "假日刷，限假日使用" },
+      { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "街口支付", note: "一般消費 1%（街口支付不列入百大加碼）" },
     ]
   },
   {
