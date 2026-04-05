@@ -352,7 +352,10 @@
 
   <!-- Tab 3: 額度追蹤 -->
   <div id="tab-quota" class="tab-content">
-    <div class="section-title">回饋額度追蹤</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <div class="section-title" style="margin-bottom:0;">回饋額度追蹤</div>
+      <span id="quota-sync-status" style="font-size:12px; color:#aaa;">同步中...</span>
+    </div>
     <p style="font-size:13px; color:#888; margin-bottom:16px;">每月手動更新已回饋金額，系統會在帳單截止日自動重置。</p>
     <div id="quota-list"></div>
   </div>
@@ -965,6 +968,9 @@ function downloadICS() {
 
 // ============ 額度追蹤 ============
 
+const SHEETS_API = "https://script.google.com/macros/s/AKfycbxydcnYwyxzB_flVX5p4zoeKyiKwxalbegjyIrCKUwXSJDpXCY-Qy5kbYh4y2rVfZup/exec";
+const SHEETS_SECRET = "hackcard2026";
+
 const quotaConfig = [
   { id: "unicard-elite", card: "Unicard", name: "百大加碼", limit: 1000, unit: "點", resetDay: 15, note: "每月上限 1,000 點（簡單選）/ 5,000 點（UP選）" },
   { id: "ubear-digital", card: "U Bear 卡", name: "數位訂閱加碼", limit: 100, unit: "元", resetDay: 15, note: "每期上限 $100（指定訂閱 10%）" },
@@ -990,23 +996,53 @@ function getQuotaStorageKey(id) {
   return `quota-${id}-${periodYear}-${periodMonth}`;
 }
 
-function addQuota(id) {
+// 從 Google Sheets 讀取所有額度資料，同步到 localStorage
+async function syncFromSheets() {
+  const statusEl = document.getElementById("quota-sync-status");
+  try {
+    const res = await fetch(`${SHEETS_API}?secret=${SHEETS_SECRET}`);
+    const json = await res.json();
+    if (json.ok && json.data) {
+      Object.entries(json.data).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
+      });
+      if (statusEl) statusEl.textContent = "已同步 ✓";
+    }
+  } catch (e) {
+    if (statusEl) statusEl.textContent = "離線模式";
+  }
+  renderQuota();
+}
+
+// 寫入單筆到 Google Sheets（同時更新 localStorage）
+async function saveToSheets(key, value) {
+  localStorage.setItem(key, value);
+  renderQuota();
+  try {
+    await fetch(SHEETS_API, {
+      method: "POST",
+      body: JSON.stringify({ secret: SHEETS_SECRET, key, value: String(value) }),
+    });
+  } catch (e) {
+    // 離線時只存 localStorage，下次開啟會從 Sheets 拉回
+  }
+}
+
+async function addQuota(id) {
   const input = document.getElementById("input-" + id);
   const val = parseFloat(input.value);
   if (!val || val <= 0) return;
   const key = getQuotaStorageKey(id);
   const current = parseFloat(localStorage.getItem(key) || "0");
-  localStorage.setItem(key, current + val);
+  await saveToSheets(key, current + val);
   input.value = "";
-  renderQuota();
 }
 
-function deleteQuota(id) {
+async function deleteQuota(id) {
   const config = quotaConfig.find(q => q.id === id);
   const confirmed = window.confirm(`確定要清除「${config.card} ${config.name}」的本期已使用紀錄嗎？`);
   if (confirmed) {
-    localStorage.removeItem(getQuotaStorageKey(id));
-    renderQuota();
+    await saveToSheets(getQuotaStorageKey(id), "0");
   }
 }
 
@@ -1116,10 +1152,8 @@ checkExpiryNotifications();
 // ============ 初始化 ============
 
 renderBilling();
-renderQuota();
-
-localStorage.setItem("creditcard-personal-cards", JSON.stringify(cards));
-localStorage.setItem("creditcard-personal-recommendations", JSON.stringify(recommendations));
+renderQuota();       // 先用 localStorage 快速顯示
+syncFromSheets();    // 再從 Sheets 拉取最新資料更新畫面
 </script>
 
 </body>
