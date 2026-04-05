@@ -86,6 +86,7 @@
       gap: 6px;
       margin-top: 6px;
       flex-wrap: wrap;
+      width: 100%;
     }
     .plan-expiry-tag {
       font-size: 11px;
@@ -570,6 +571,7 @@ const recommendations = [
   },
   {
     store: "指定百貨購物中心",
+    keywords: ["global mall", "夢時代", "統一時代", "宏匯", "三創", "中友", "秀泰", "美麗華", "京站", "購物中心", "百貨"],
     options: [
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（指定百貨）" },
@@ -823,8 +825,16 @@ function renderBilling() {
 function selectStore(storeName, evt) {
   document.getElementById("store-search").value = "";
   document.getElementById("search-dropdown").classList.add("hidden");
+  const btn = evt && evt.target;
+  const isAlreadySelected = btn && btn.classList.contains("selected");
   document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
-  if (evt && evt.target) evt.target.classList.add("selected");
+  if (isAlreadySelected) {
+    // 取消選取，隱藏結果
+    currentStore = null;
+    document.getElementById("result-list").classList.add("hidden");
+    return;
+  }
+  if (btn) btn.classList.add("selected");
   currentStore = storeName;
   showRecommendationFor(storeName);
 }
@@ -833,7 +843,10 @@ function onSearchInput() {
   const query = document.getElementById("store-search").value.trim().toLowerCase();
   const dropdown = document.getElementById("search-dropdown");
   if (!query) { dropdown.classList.add("hidden"); return; }
-  const matches = recommendations.filter(r => r.store.toLowerCase().includes(query));
+  const matches = recommendations.filter(r =>
+    r.store.toLowerCase().includes(query) ||
+    (r.keywords && r.keywords.some(k => k.toLowerCase().includes(query)))
+  );
   if (matches.length === 0) { dropdown.classList.add("hidden"); return; }
   dropdown.innerHTML = matches.map(r =>
     `<div class="search-option" onclick="pickFromSearch('${r.store.replace(/'/g, "\\'")}')">${r.store}</div>`
