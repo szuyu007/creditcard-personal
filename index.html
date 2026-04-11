@@ -260,6 +260,114 @@
       line-height: 1.5;
     }
 
+    /* CUBE 權益查詢徽章（搜尋下拉用） */
+    .search-option-cube-badge {
+      display: inline-block;
+      font-size: 11px;
+      color: #888;
+      background: #f0f0f0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* CUBE 額外權益區塊 */
+    .cube-extra-section {
+      background: #f5f9ff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      border: 1px dashed #b3d4fc;
+    }
+    .cube-extra-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a90d9;
+      margin-bottom: 8px;
+    }
+    .cube-extra-item {
+      font-size: 13px;
+      color: #333;
+      padding: 6px 0;
+      border-top: 1px solid #e8f0fb;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .cube-extra-item:first-of-type { border-top: none; }
+    .cube-extra-item.dimmed { color: #bbb; }
+    .cube-extra-item .plan-name { font-weight: 600; }
+    .cube-extra-item .plan-rate {
+      font-size: 12px;
+      color: #2e7d32;
+      background: #e8f5e9;
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .cube-extra-item.dimmed .plan-rate { color: #bbb; background: #f5f5f5; }
+    .cube-extra-item .plan-note { font-size: 11px; color: #999; }
+
+    /* 集團總覽:放在主列表最前面的醒目卡片 */
+    .group-overview-section {
+      background: #fff5f5;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border-left: 4px solid #e53935;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .group-overview-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e53935;
+      margin-bottom: 10px;
+    }
+    .group-overview-item {
+      padding: 8px 0;
+      border-top: 1px solid #ffe0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .group-overview-item:first-of-type { border-top: none; padding-top: 2px; }
+    .group-overview-item .plan-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+    }
+    .group-overview-item .brand-list {
+      font-size: 12px;
+      font-weight: 700;
+      color: #d32f2f;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .group-overview-item .plan-rate {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2e7d32;
+      background: #e8f5e9;
+      padding: 3px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .cube-extra-empty {
+      font-size: 12px;
+      color: #888;
+      padding: 4px 0;
+    }
+
+    /* CUBE-only 結果項(既有 recommendations 沒有的店家) */
+    .result-item.cube-only { border-left: 4px solid #b3d4fc; }
+    .result-item.cube-only .result-rank {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
     /* ICS button */
     .ics-btn {
       width: 100%;
@@ -383,6 +491,162 @@
   </div>
 
 <script>
+// ============ CUBE 權益資料(非同步載入) ============
+
+let cubeBenefitsData = null;
+
+async function loadCubeBenefits() {
+  try {
+    const res = await fetch("data/cube-benefits.json");
+    cubeBenefitsData = await res.json();
+  } catch (err) {
+    console.warn("CUBE 權益資料載入失敗", err);
+    cubeBenefitsData = { plans: [] };
+  }
+}
+
+// 判斷 CUBE 方案目前是否有效(period 未過期、且慶生月要在生日月份)
+// 回傳 true 代表可以顯示在主推薦;false 代表應該排除或顯示為灰色
+function isCubePlanActive(plan) {
+  const today = new Date();
+  // 期間檢查:period 格式 "YYYY/MM/DD ~ YYYY/MM/DD"
+  if (plan.period) {
+    const m = plan.period.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*[~\-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m) {
+      const start = new Date(+m[1], +m[2] - 1, +m[3]);
+      const end = new Date(+m[4], +m[5] - 1, +m[6], 23, 59, 59);
+      if (today < start || today > end) return false;
+    }
+  }
+  // 慶生月檢查
+  if (plan.birthMonth && plan.birthMonth !== today.getMonth() + 1) {
+    return false;
+  }
+  return true;
+}
+
+// 在 CUBE 權益資料中搜尋店家(給搜尋下拉用),回傳 [{plan, rate, note, merchantName}]
+// 會過濾掉已過期/非生日月的方案
+function findCubeBenefitsByStore(query) {
+  if (!cubeBenefitsData || !query) return [];
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const results = [];
+  cubeBenefitsData.plans.forEach(plan => {
+    if (!isCubePlanActive(plan)) return;
+    plan.merchants.forEach(m => {
+      if (m.name.toLowerCase().includes(q)) {
+        results.push({
+          planId: plan.id,
+          planName: plan.name,
+          planBirthMonth: plan.birthMonth || null,
+          planPeriod: plan.period || null,
+          rate: m.rate,
+          merchantName: m.name,
+          note: m.note || "",
+          type: m.type || "merchant"
+        });
+      }
+    });
+  });
+  return results;
+}
+
+// 取得某個精確店名在所有 CUBE 方案中的出現(給「主推薦融合」和「額外權益區塊」用)
+// 會過濾掉已過期/非生日月的方案
+function findCubeBenefitsForExactStore(storeName) {
+  if (!cubeBenefitsData || !storeName) return [];
+  const key = storeName.toLowerCase();
+  const results = [];
+  cubeBenefitsData.plans.forEach(plan => {
+    if (!isCubePlanActive(plan)) return;
+    plan.merchants.forEach(m => {
+      const mname = m.name.toLowerCase();
+      // 雙向子字串比對:store 包含 merchant 名 或 merchant 名包含 store
+      if (mname.includes(key) || key.includes(mname)) {
+        results.push({
+          planId: plan.id,
+          planName: plan.name,
+          planBirthMonth: plan.birthMonth || null,
+          planPeriod: plan.period || null,
+          rate: m.rate,
+          merchantName: m.name,
+          note: m.note || ""
+        });
+      }
+    });
+  });
+  return results;
+}
+
+// 把 CUBE 命中轉成 recommendations option 的格式,方便融入主推薦列表
+function cubeHitToOption(hit) {
+  return {
+    card: "CUBE 卡",
+    bank: "國泰世華",
+    rate: hit.rate,
+    type: "小樹點",
+    pay: "直刷 / Apple Pay",
+    cubePlan: hit.planName,
+    note: hit.note || `CUBE ${hit.planName} 方案指定消費`,
+    _fromCubeFallback: true
+  };
+}
+
+// 根據店名或別名找到 recommendations 裡的條目(回傳 rec 物件或 null)
+// 用在「使用者搜『陶板屋』時找到王品集團的 options」
+function resolveStoreEntry(name) {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  // 先找精確 store 名
+  let hit = recommendations.find(r => r.store.toLowerCase() === lower);
+  if (hit) return hit;
+  // 再找 aliases 精確命中
+  hit = recommendations.find(r =>
+    r.aliases && r.aliases.some(a => a.toLowerCase() === lower)
+  );
+  return hit || null;
+}
+
+// 給一個 CUBE merchant name,判斷它是否已被某個 rec entry 的 store/alias 涵蓋
+// 例如「王品瘋Pay - 陶板屋」因為含有「陶板屋」(王品 alias)→ true
+// 用在「CUBE fallback 下拉去重」時,避免既有集團的子店家又以 CUBE 原名獨立出現
+function isCubeMerchantCoveredByRec(merchantName) {
+  if (!merchantName) return false;
+  const mLower = merchantName.toLowerCase();
+  for (const r of recommendations) {
+    const names = [r.store, ...(r.aliases || [])];
+    for (const n of names) {
+      const nLower = n.toLowerCase();
+      // 雙向子字串:merchant 等於或包含該名稱,或該名稱包含 merchant
+      if (mLower === nLower || mLower.includes(nLower) || nLower.includes(mLower)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// 針對某個 rec 條目,用它的 store + 所有 aliases 去 cube-benefits 找所有命中
+// 這解決「陶板屋和風洋食」比對不到「王品瘋Pay - 陶板屋」的問題 —
+// 因為會同時用「陶板屋」「和牛涮」等 alias 去比對,命中會聯集
+function findCubeBenefitsForRecEntry(rec) {
+  if (!rec) return [];
+  const names = [rec.store, ...(rec.aliases || [])];
+  const seen = new Set();
+  const all = [];
+  names.forEach(n => {
+    const hits = findCubeBenefitsForExactStore(n);
+    hits.forEach(h => {
+      const key = h.planName + "::" + h.merchantName;
+      if (seen.has(key)) return;
+      seen.add(key);
+      all.push(h);
+    });
+  });
+  return all;
+}
+
 // ============ 信用卡基本資料 ============
 
 const cards = [
@@ -616,6 +880,7 @@ const recommendations = [
   },
   {
     store: "王品集團",
+    aliases: ["原燒", "王品牛排", "夏慕尼", "西堤", "TASTy", "陶板屋", "品田牧場", "石二鍋", "青花驕", "享鴨", "12MINI", "和牛涮", "肉次方", "藝奇", "聚日式鍋物"],
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（王品集團全品牌）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（限街邊店，非百貨內）" },
@@ -625,6 +890,7 @@ const recommendations = [
   },
   {
     store: "饗賓集團",
+    aliases: ["饗 A Joy", "饗饗", "旭集", "旨醞鐵板", "URBAN PARADISE", "饗食天堂", "果然匯", "小福利", "朵頤", "開飯", "饗泰多", "真珠", "貓將"],
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
@@ -634,6 +900,7 @@ const recommendations = [
   },
   {
     store: "瓦城集團",
+    aliases: ["瓦城", "非常泰", "大心", "時時香", "樂子", "the Diner", "1010湘"],
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
@@ -643,6 +910,7 @@ const recommendations = [
   },
   {
     store: "漢來美食",
+    aliases: ["漢來海港", "島語", "漢來蔬食", "名人坊", "東方樓", "聚薈所", "漢來上海湯包", "溜溜酸菜魚", "上菜片皮鴨", "樂蔬", "翠園", "漢來軒", "焰", "PAVO", "弁慶", "福園", "HI-LAI CAFE"],
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
@@ -846,14 +1114,71 @@ function onSearchInput() {
   const query = document.getElementById("store-search").value.trim().toLowerCase();
   const dropdown = document.getElementById("search-dropdown");
   if (!query) { dropdown.classList.add("hidden"); return; }
-  const matches = recommendations.filter(r =>
-    r.store.toLowerCase().includes(query) ||
-    (r.keywords && r.keywords.some(k => k.toLowerCase().includes(query)))
-  );
-  if (matches.length === 0) { dropdown.classList.add("hidden"); return; }
-  dropdown.innerHTML = matches.map(r =>
-    `<div class="search-option" onclick="pickFromSearch('${r.store.replace(/'/g, "\\'")}')">${r.store}</div>`
-  ).join("");
+
+  // 產生下拉項目清單:每一項 {label, value, fromCubeOnly}
+  // label = 顯示文字;value = 點擊後帶入的 currentStore 名稱
+  const items = [];
+  const seenLabels = new Set();
+
+  // (1) recommendations 主店名命中
+  recommendations.forEach(r => {
+    if (r.store.toLowerCase().includes(query)) {
+      const key = r.store.toLowerCase();
+      if (!seenLabels.has(key)) {
+        items.push({ label: r.store, value: r.store, fromCubeOnly: false });
+        seenLabels.add(key);
+      }
+    }
+  });
+
+  // (2) recommendations aliases 命中 — 顯示別名本身
+  recommendations.forEach(r => {
+    if (!r.aliases) return;
+    r.aliases.forEach(alias => {
+      if (alias.toLowerCase().includes(query)) {
+        const key = alias.toLowerCase();
+        if (!seenLabels.has(key)) {
+          items.push({ label: alias, value: alias, fromCubeOnly: false });
+          seenLabels.add(key);
+        }
+      }
+    });
+  });
+
+  // (3) recommendations keywords 命中 — 顯示 store 名(keywords 是關鍵字別名不是店名)
+  recommendations.forEach(r => {
+    if (!r.keywords) return;
+    if (r.keywords.some(k => k.toLowerCase().includes(query))) {
+      const key = r.store.toLowerCase();
+      if (!seenLabels.has(key)) {
+        items.push({ label: r.store, value: r.store, fromCubeOnly: false });
+        seenLabels.add(key);
+      }
+    }
+  });
+
+  // (4) CUBE fallback — 只顯示既有 recommendations 完全找不到(store/alias 都沒覆蓋)的店家
+  const cubeMatches = findCubeBenefitsByStore(query);
+  cubeMatches.forEach(c => {
+    const lower = c.merchantName.toLowerCase();
+    if (seenLabels.has(lower)) return;
+    // 例如「王品瘋Pay - 陶板屋」因包含「陶板屋」(王品 alias)應被過濾掉
+    if (isCubeMerchantCoveredByRec(c.merchantName)) return;
+    items.push({ label: c.merchantName, value: c.merchantName, fromCubeOnly: true });
+    seenLabels.add(lower);
+  });
+
+  if (items.length === 0) {
+    dropdown.classList.add("hidden");
+    return;
+  }
+
+  const escape = s => s.replace(/'/g, "\\'");
+  dropdown.innerHTML = items.map(it => {
+    const badge = it.fromCubeOnly ? `<span class="search-option-cube-badge">僅 CUBE 權益查詢</span>` : "";
+    const handler = it.fromCubeOnly ? "pickFromCubeSearch" : "pickFromSearch";
+    return `<div class="search-option" onclick="${handler}('${escape(it.value)}')">${it.label}${badge}</div>`;
+  }).join("");
   dropdown.classList.remove("hidden");
 }
 
@@ -865,10 +1190,61 @@ function pickFromSearch(storeName) {
   showRecommendationFor(storeName);
 }
 
+// 選到的是「僅 CUBE 權益查詢」結果(既有 recommendations 沒有的店家)
+function pickFromCubeSearch(storeName) {
+  document.getElementById("store-search").value = storeName;
+  document.getElementById("search-dropdown").classList.add("hidden");
+  document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
+  currentStore = storeName;
+  showCubeOnlyRecommendation(storeName);
+}
+
+// 顯示純 CUBE 權益結果(沒有 recommendations 資料時)
+// findCubeBenefitsForExactStore 已過濾掉過期/非生日月方案,所以這裡不需再處理 dimmed
+function showCubeOnlyRecommendation(storeName) {
+  const listEl = document.getElementById("result-list");
+  const matches = findCubeBenefitsForExactStore(storeName);
+  if (matches.length === 0) {
+    listEl.innerHTML = `<div class="cube-extra-empty">找不到「${storeName}」的權益資料(或目前無適用方案)。</div>`;
+    listEl.classList.remove("hidden");
+    return;
+  }
+  const amountStr = document.getElementById("amount-input").value;
+  const amount = amountStr ? parseInt(amountStr) : 0;
+
+  // 依回饋率排序(高到低)
+  matches.sort((a, b) => b.rate - a.rate);
+
+  let html = `<div class="result-item cube-only">
+    <span class="result-rank">CUBE 權益</span>
+    <div class="result-card-name">${storeName}</div>
+    <div class="result-bank">國泰世華 CUBE 卡</div>
+    <div class="cube-extra-section" style="margin-top:10px;">
+      <div class="cube-extra-title">此店家出現在以下 CUBE 方案</div>`;
+  matches.forEach(m => {
+    const cashback = amount > 0 ? Math.floor(amount * m.rate / 100) : null;
+    html += `<div class="cube-extra-item">
+      <div>
+        <span class="plan-name">${m.planName}</span>
+        ${m.note ? `<div class="plan-note">${m.note}</div>` : ""}
+      </div>
+      <span class="plan-rate">${m.rate}%${cashback !== null ? ` / $${cashback}` : ''}</span>
+    </div>`;
+  });
+  html += `</div>
+    <div class="result-note">需切換 CUBE 方案(每日限切換 1 次)</div>
+  </div>`;
+  listEl.innerHTML = html;
+  listEl.classList.remove("hidden");
+}
+
 let currentStore = null;
 
 function onAmountInput() {
-  if (currentStore) showRecommendationFor(currentStore);
+  if (!currentStore) return;
+  // 如果 currentStore 可以 resolve 到 rec 條目(含 alias),走完整流程;否則走 CUBE-only
+  if (resolveStoreEntry(currentStore)) showRecommendationFor(currentStore);
+  else showCubeOnlyRecommendation(currentStore);
 }
 
 function showRecommendationFor(storeName) {
@@ -876,15 +1252,117 @@ function showRecommendationFor(storeName) {
   const amount = amountStr ? parseInt(amountStr) : 0;
   const listEl = document.getElementById("result-list");
 
-  const rec = recommendations.find(r => r.store === storeName);
+  // storeName 可能是 store 本名,也可能是 alias(例如「陶板屋」→ 王品集團)
+  const rec = resolveStoreEntry(storeName);
   if (!rec) { listEl.classList.add("hidden"); return; }
 
-  const cubePlans = rec.options.filter(o => o.cubePlan).map(o => o.cubePlan);
+  // 顯示標題用使用者實際搜/點的名稱(alias 的話顯示別名)
+  const displayName = storeName;
+
+  // === 融合 CUBE 權益資料到主推薦列表 ===
+  // 只用 displayName(使用者實際搜/點的名字)去找命中
+  // 例如搜「西堤」只找「西堤」本身的 CUBE 命中(沒有就沒有,不用整個王品集團聯集)
+  // 這避免「集團底下某品牌有日本賞 8%」錯誤地繼承給所有品牌
+  const cubeHits = findCubeBenefitsForExactStore(displayName);
+  // 同一 CUBE 方案若命中多筆,只保留 rate 最高的
+  const bestByPlan = new Map();
+  cubeHits.forEach(h => {
+    const prev = bestByPlan.get(h.planName);
+    if (!prev || h.rate > prev.rate) bestByPlan.set(h.planName, h);
+  });
+  // 既有 rec.options 裡 CUBE 方案要被「升級」為 cube-benefits 的更高 rate(如果更高)
+  // 策略:先把既有 options 分兩類(CUBE / 非 CUBE),CUBE 的用方案名當 key
+  const mergedOptions = [];
+  const cubePlansInRec = new Map();  // planName -> option(ref)
+  rec.options.forEach(opt => {
+    if (opt.cubePlan) {
+      cubePlansInRec.set(opt.cubePlan, opt);
+    }
+    mergedOptions.push({ ...opt });
+  });
+  // 既有 rec.options 裡所有 CUBE 卡的最高 rate(不限方案名)
+  // 用來避免「cube-benefits 命中帶進來的方案 rate 沒比既有高,卻新增一筆 CUBE 卡」的重複問題
+  // 例如新光三越既有 CUBE 樂饗購 3%,cube-benefits 的日本賞也是 3% → 不應再新增
+  const maxExistingCubeRate = Math.max(0, ...rec.options.filter(o => o.cubePlan).map(o => o.rate));
+
+  // 把 cube-benefits 的命中轉成 options
+  bestByPlan.forEach((hit, planName) => {
+    if (cubePlansInRec.has(planName)) {
+      // 既有 recommendations 已有此方案,只在 cube-benefits 的 rate 比較高時升級
+      const idx = mergedOptions.findIndex(o => o.cubePlan === planName);
+      if (idx >= 0 && hit.rate > mergedOptions[idx].rate) {
+        mergedOptions[idx] = {
+          ...mergedOptions[idx],
+          rate: hit.rate,
+          note: hit.note || mergedOptions[idx].note,
+          _upgraded: true
+        };
+      }
+    } else {
+      // 既有沒有此方案 — 只在 rate 嚴格大於既有所有 CUBE 方案時才新增
+      // 避免同 rate 的 CUBE 卡並列顯示(例如新光三越樂饗購 3% + 日本賞 3%)
+      if (hit.rate > maxExistingCubeRate) {
+        mergedOptions.push(cubeHitToOption(hit));
+      }
+    }
+  });
+  // 按 rate 由高到低排序
+  mergedOptions.sort((a, b) => b.rate - a.rate);
+
+  const cubePlans = mergedOptions.filter(o => o.cubePlan).map(o => o.cubePlan);
   const uniqueCubePlans = [...new Set(cubePlans)];
 
   let html = "";
 
-  rec.options.forEach((opt, i) => {
+  // === 集團總覽情境:列出集團旗下有哪些品牌適用哪個 CUBE 方案 ===
+  // 僅當 displayName 等於 rec.store(= 點快選集團按鈕,而非搜具體子店家)時才顯示
+  // 放在主列表最前面,讓使用者一眼看到「旗下某幾家才有的高回饋權益」
+  const isGroupOverview = rec.aliases && rec.aliases.length > 0 && displayName === rec.store;
+  if (isGroupOverview) {
+    // 遍歷每個 alias,去 cube-benefits 查命中,按 CUBE 方案分組
+    const planToBrands = new Map(); // planName -> { rate, brands: [alias1, alias2, ...] }
+    rec.aliases.forEach(alias => {
+      const hits = findCubeBenefitsForExactStore(alias);
+      // 每個 alias 在同一方案內只保留 rate 最高的那筆
+      const byPlan = new Map();
+      hits.forEach(h => {
+        const prev = byPlan.get(h.planName);
+        if (!prev || h.rate > prev.rate) byPlan.set(h.planName, h);
+      });
+      byPlan.forEach((hit, planName) => {
+        if (!planToBrands.has(planName)) {
+          planToBrands.set(planName, { rate: hit.rate, brands: [] });
+        }
+        const entry = planToBrands.get(planName);
+        if (hit.rate > entry.rate) entry.rate = hit.rate;
+        entry.brands.push(alias);
+      });
+    });
+
+    // 過濾掉「整個集團全品牌都適用」的方案(已在主列表顯示,例如樂饗購)
+    const shownCubePlans = new Set(rec.options.filter(o => o.cubePlan).map(o => o.cubePlan));
+    const entries = [...planToBrands.entries()]
+      .filter(([planName]) => !shownCubePlans.has(planName))
+      .sort((a, b) => b[1].rate - a[1].rate);
+
+    if (entries.length > 0) {
+      html += `<div class="group-overview-section">
+        <div class="group-overview-title">⭐ 集團旗下品牌的額外 CUBE 權益</div>`;
+      entries.forEach(([planName, info]) => {
+        const cashback = amount > 0 ? Math.floor(amount * info.rate / 100) : null;
+        html += `<div class="group-overview-item">
+          <div>
+            <div class="plan-name">CUBE 卡 · ${planName}</div>
+            <div class="brand-list">適用品牌：${info.brands.join("、")}</div>
+          </div>
+          <span class="plan-rate">${info.rate}%${cashback !== null ? ` / $${cashback}` : ''}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  mergedOptions.forEach((opt, i) => {
     const rank = i + 1;
     const cashback = amount > 0 ? Math.floor(amount * opt.rate / 100) : null;
 
@@ -906,15 +1384,13 @@ function showRecommendationFor(storeName) {
     `;
   });
 
-  if (uniqueCubePlans.length > 0) {
-    const topCube = rec.options.find(o => o.cubePlan);
-    if (topCube && rec.options.indexOf(topCube) === 0) {
-      html += `
-        <div class="cube-switch-note">
-          提醒：CUBE 卡每日只能切換 1 次方案。若今天已切換為其他方案，可考慮使用第 2、3 名的卡片。
-        </div>
-      `;
-    }
+  // CUBE 切換提醒:當第 1 名是 CUBE 卡時顯示
+  if (mergedOptions.length > 0 && mergedOptions[0].cubePlan) {
+    html += `
+      <div class="cube-switch-note">
+        提醒：CUBE 卡每日只能切換 1 次方案。若今天已切換為其他方案，可考慮使用第 2、3 名的卡片。
+      </div>
+    `;
   }
 
   listEl.innerHTML = html;
@@ -1154,6 +1630,7 @@ checkExpiryNotifications();
 renderBilling();
 renderQuota();       // 先用 localStorage 快速顯示
 syncFromSheets();    // 再從 Sheets 拉取最新資料更新畫面
+loadCubeBenefits();  // 載入 CUBE 權益資料(供搜尋 fallback 使用)
 </script>
 
 </body>
