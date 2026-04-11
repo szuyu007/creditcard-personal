@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# 原始權益截圖（保留在本地,不進版控;文字化後的 markdown 才進版控）
+assets/cube-benefits/*.PNG
+assets/cube-benefits/*.png
+assets/cube-benefits/*.jpg
+assets/cube-benefits/*.jpeg
