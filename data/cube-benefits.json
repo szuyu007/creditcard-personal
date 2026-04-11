@@ -1,0 +1,172 @@
+{
+  "_meta": {
+    "source": "國泰世華 CUBE 卡 App 權益方案頁面",
+    "lastUpdated": "2026-04-11",
+    "notes": [
+      "本檔案為 Hackcard 店家搜尋功能的結構化資料來源",
+      "rate 單位為百分比(%),例如 3 代表 3%",
+      "merchants[].type: 'merchant' 為具體店家可精準比對,'category' 為類別需額外判斷",
+      "樂饗購的 35 家指定百貨詳細清單待補(用戶正在補拍截圖)",
+      "趣旅行方案可能有被截斷的項目待補"
+    ]
+  },
+  "card": "國泰世華 CUBE 卡",
+  "plans": [
+    {
+      "id": "le-xiang-gou",
+      "name": "樂饗購",
+      "level": 2,
+      "stars": 2,
+      "period": "2026/01/01 ~ 2026/06/30",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定購物/餐飲消費", "rate": 3 }
+      ],
+      "merchants": [
+        { "name": "國內指定百貨", "category": "百貨", "rate": 3, "type": "category", "note": "認定依刷卡簽單特店名稱,UNIQLO/GU/Gap/H&M/ZARA/lululemon 等品牌需於指定百貨內消費才適用。詳細百貨清單待補。" },
+        { "name": "國內藥妝", "category": "藥妝", "rate": 3, "type": "category" },
+        { "name": "國內餐飲", "category": "餐飲", "rate": 3, "type": "category", "note": "依 MCC code 5811/5812/5814/5462 認定,不含購買餐券(含單筆 NT$10 萬以上饗賓集團禮券),不含百貨/商場/車站/機場美食街/國道服務區美食街內餐廳、菸酒販賣商。" },
+        { "name": "麥當勞", "category": "連鎖速食", "rate": 3, "type": "merchant", "note": "不適用百貨/商場/車站/機場美食街/國道服務區等實體門市。限選定樂饗購方案。" },
+        { "name": "Uber Eats", "category": "國內外送平台", "rate": 3, "type": "merchant" },
+        { "name": "foodpanda", "category": "國內外送平台", "rate": 3, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "wan-shu-wei",
+      "name": "玩數位",
+      "level": 2,
+      "stars": 2,
+      "period": null,
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定線上消費", "rate": 3 }
+      ],
+      "merchants": [
+        { "name": "數位/串流平台", "category": "數位串流", "rate": 3, "type": "category" },
+        { "name": "網購平台", "category": "網購", "rate": 3, "type": "category" },
+        { "name": "國際電商", "category": "電商", "rate": 3, "type": "category" },
+        { "name": "AI 工具", "category": "AI", "rate": 3, "type": "category" }
+      ]
+    },
+    {
+      "id": "qu-lyu-xing",
+      "name": "趣旅行",
+      "level": 2,
+      "stars": 2,
+      "period": null,
+      "incomplete": true,
+      "incompleteReason": "截圖底部被截斷,『指定航空公司』後可能還有項目待補",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定旅遊/交通消費", "rate": 3 }
+      ],
+      "merchants": [
+        { "name": "海外實體消費", "category": "海外", "rate": 3, "type": "category", "note": "含國外餐飲" },
+        { "name": "國內外指定交通/高鐵", "category": "交通", "rate": 3, "type": "category" },
+        { "name": "日本指定樂園", "category": "樂園", "rate": 3, "type": "category", "note": "含官網購票" },
+        { "name": "旅遊訂房平台", "category": "訂房", "rate": 3, "type": "category" },
+        { "name": "指定航空公司", "category": "航空", "rate": 3, "type": "category" }
+      ]
+    },
+    {
+      "id": "qing-sheng-yue",
+      "name": "慶生月",
+      "level": null,
+      "stars": null,
+      "period": null,
+      "usageLimit": "僅限生日當月使用",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定美食/KTV/樂園", "rate": 10 }
+      ],
+      "merchants": [
+        { "name": "精選早午餐日料餐廳", "category": "餐飲", "rate": 10, "type": "category", "note": "含桃竹美食" },
+        { "name": "Pastaio", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "UNCLE SHAWN 烤肉餐酒館", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "青沐", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "芮秋", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "立秋", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "彼刻義式餐酒館", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "嵩 GAO Taipei", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "法國的秘密甜點", "category": "餐飲", "rate": 10, "type": "merchant" },
+        { "name": "東京迪士尼", "category": "樂園", "rate": 10, "type": "merchant" },
+        { "name": "大阪環球影城", "category": "樂園", "rate": 10, "type": "merchant" },
+        { "name": "PlayStation", "category": "娛樂", "rate": 10, "type": "merchant" },
+        { "name": "Nintendo", "category": "娛樂", "rate": 10, "type": "merchant" },
+        { "name": "巴哈姆特動畫瘋", "category": "娛樂", "rate": 10, "type": "merchant" },
+        { "name": "錢櫃", "category": "KTV", "rate": 10, "type": "merchant" },
+        { "name": "星聚點", "category": "KTV", "rate": 10, "type": "merchant" },
+        { "name": "好樂迪", "category": "KTV", "rate": 10, "type": "merchant" },
+        { "name": "享溫馨", "category": "KTV", "rate": 10, "type": "merchant" },
+        { "name": "新光三越", "category": "百貨", "rate": 3.5, "type": "merchant" },
+        { "name": "Uber Eats", "category": "外送", "rate": 3.5, "type": "merchant" },
+        { "name": "Klook", "category": "旅遊", "rate": 3.5, "type": "merchant" },
+        { "name": "FunNow", "category": "娛樂", "rate": 3.5, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "ri-ben-shang",
+      "name": "日本賞",
+      "level": 2,
+      "stars": 2,
+      "period": "2026/03/01 ~ 2026/04/30",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "日本實體消費/指定旅遊", "rate": 3.5 }
+      ],
+      "merchants": [
+        { "name": "王品瘋Pay - 聚日式鍋物", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "王品瘋Pay - 和牛涮", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "王品瘋Pay - 陶板屋", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "王品瘋Pay - 藝奇", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "I'm donut?", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "挽肉と米", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "雞湯泉", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "二本松", "category": "餐飲", "rate": 8, "type": "merchant" },
+        { "name": "Klook 指定日本商品", "category": "旅遊", "rate": 6, "type": "merchant" },
+        { "name": "Hotels.com 專屬網頁", "category": "訂房", "rate": 5, "type": "merchant" },
+        { "name": "Expedia 專屬網頁", "category": "訂房", "rate": 5, "type": "merchant" },
+        { "name": "台灣壽司郎", "category": "餐飲", "rate": 5, "type": "merchant" },
+        { "name": "LOPIA", "category": "超市", "rate": 5, "type": "merchant" },
+        { "name": "明曜百貨", "category": "百貨", "rate": 5, "type": "merchant" },
+        { "name": "Apple 錢包日本指定交通卡", "category": "交通", "rate": 3.5, "type": "merchant" },
+        { "name": "Go Taxi App", "category": "交通", "rate": 3.5, "type": "merchant" },
+        { "name": "樂桃航空", "category": "航空", "rate": 3.5, "type": "merchant" },
+        { "name": "Trip.com", "category": "旅遊", "rate": 3.5, "type": "merchant" },
+        { "name": "KKday", "category": "旅遊", "rate": 3.5, "type": "merchant" },
+        { "name": "易遊網", "category": "旅遊", "rate": 3.5, "type": "merchant" },
+        { "name": "foodpanda", "category": "外送", "rate": 3, "type": "merchant" },
+        { "name": "摩斯漢堡", "category": "餐飲", "rate": 3, "type": "merchant" },
+        { "name": "新光三越", "category": "百貨", "rate": 3, "type": "merchant" },
+        { "name": "GU 網路商店", "category": "網購", "rate": 3, "type": "merchant" },
+        { "name": "Agoda", "category": "訂房", "rate": 3, "type": "merchant" },
+        { "name": "UNIQLO 直營店", "category": "服飾", "rate": 3, "type": "merchant" },
+        { "name": "UNIQLO 網路商店", "category": "服飾", "rate": 3, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "ji-jing-xuan",
+      "name": "集精選",
+      "level": 2,
+      "stars": 2,
+      "period": "2026/01/01 ~ 2026/06/30",
+      "currentActive": true,
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定品牌/生活消費", "rate": 2 }
+      ],
+      "merchants": [
+        { "name": "家樂福", "category": "超市", "rate": 2, "type": "merchant" },
+        { "name": "全聯", "category": "超市", "rate": 2, "type": "merchant" },
+        { "name": "LOPIA 台灣", "category": "超市", "rate": 2, "type": "merchant" },
+        { "name": "指定充電站", "category": "充電", "rate": 2, "type": "category" },
+        { "name": "車麻吉", "category": "交通", "rate": 2, "type": "merchant" },
+        { "name": "uTagGo", "category": "交通", "rate": 2, "type": "merchant" },
+        { "name": "中油直營店", "category": "加油", "rate": 2, "type": "merchant" },
+        { "name": "7-ELEVEN 實體門市", "category": "超商", "rate": 2, "type": "merchant" },
+        { "name": "全家實體門市", "category": "超商", "rate": 2, "type": "merchant" },
+        { "name": "IKEA 宜家家居", "category": "家居", "rate": 2, "type": "merchant" }
+      ]
+    }
+  ]
+}
