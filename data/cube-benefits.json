@@ -176,6 +176,7 @@
       "stars": null,
       "period": null,
       "usageLimit": "僅限生日當月使用",
+      "birthMonth": 7,
       "baseRewards": [
         { "category": "一般消費", "rate": 0.3 },
         { "category": "指定美食/KTV/樂園", "rate": 10 }
