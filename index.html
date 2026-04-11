@@ -236,6 +236,63 @@
     .tag-pay { background: #f3e5f5; color: #7b1fa2; }
     .tag-type { background: #fff3e0; color: #e65100; }
 
+    /* 可回饋金額 chip 按鈕:明顯的按鈕樣式,有 ➕ 圖示暗示可點 */
+    .chip-cashback {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: #43a047;
+      border: none;
+      border-radius: 16px;
+      padding: 6px 12px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(67, 160, 71, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 32px;
+      transition: background 0.15s, transform 0.05s;
+    }
+    .chip-cashback:hover, .chip-cashback:active {
+      background: #388e3c;
+    }
+    .chip-cashback:active {
+      transform: scale(0.97);
+    }
+    .chip-cashback .plus-icon {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .chip-cashback.added {
+      background: #81c784;
+      cursor: default;
+    }
+
+    /* 紅色提示 toast(未追蹤額度) */
+    .error-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #d32f2f;
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      box-shadow: 0 4px 20px rgba(211, 47, 47, 0.4);
+      z-index: 100;
+      max-width: 80%;
+      text-align: center;
+      animation: toast-in 0.2s ease-out;
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to   { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
     .result-reason {
       font-size: 13px;
       color: #888;
@@ -1365,6 +1422,10 @@ function showRecommendationFor(storeName) {
   mergedOptions.forEach((opt, i) => {
     const rank = i + 1;
     const cashback = amount > 0 ? Math.floor(amount * opt.rate / 100) : null;
+    // 可回饋金額:cashback 有值時,顯示為可點的 chip-cashback 按鈕(加入額度)
+    const cardEsc = (opt.card || "").replace(/'/g, "\\'");
+    const planEsc = (opt.cubePlan || opt.richartPlan || "").replace(/'/g, "\\'");
+    const noteEsc = (opt.note || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
     html += `
       <div class="result-item rank-${rank}">
@@ -1375,7 +1436,7 @@ function showRecommendationFor(storeName) {
           <span class="result-tag tag-rate">回饋 ${opt.rate}%</span>
           <span class="result-tag tag-type">${opt.type}</span>
           <span class="result-tag tag-pay">${opt.pay}</span>
-          ${cashback !== null ? `<span class="result-tag tag-cashback">可回饋 $${cashback}</span>` : ""}
+          ${cashback !== null ? `<button class="chip-cashback" onclick="onCashbackChipClick(this, '${cardEsc}', '${planEsc}', ${cashback}, '${noteEsc}')"><span class="plus-icon">＋</span>可回饋 $${cashback}</button>` : ""}
         </div>
         <div class="result-reason">${opt.note}</div>
         ${opt.cubePlan ? `<div class="result-note">需切換 CUBE 方案為「${opt.cubePlan}」（每日限切換 1 次）</div>` : ""}
@@ -1512,6 +1573,71 @@ async function addQuota(id) {
   const current = parseFloat(localStorage.getItem(key) || "0");
   await saveToSheets(key, current + val);
   input.value = "";
+}
+
+// 根據選卡結果的 {card, plan, note},判斷是否對應到某個 quotaConfig 項目
+// 回傳該 quota id(字串)或 null
+//
+// 匹配規則設計:以實際 recommendations 裡出現的 note 字串為準,避免用太鬆的關鍵字誤命中
+function matchQuotaForCard(card, plan, note) {
+  const n = note || "";
+
+  // Unicard 百大加碼:note 含「百大指定消費」
+  if (card === "Unicard" && n.includes("百大")) return "unicard-elite";
+
+  // U Bear 指定數位訂閱 10%:note 含「指定數位訂閱」
+  if (card === "U Bear 卡" && n.includes("指定數位訂閱")) return "ubear-digital";
+
+  // U Bear 網路消費 3% 加碼:note 開頭是「網路消費 3%」
+  // (不用「網購」避免誤擊加油站的「含基本1%+網購2%+加碼3%」)
+  if (card === "U Bear 卡" && n.includes("網路消費 3%")) return "ubear-online";
+
+  // 街口聯名卡 精選通路:note 含「精選通路」
+  if (card === "街口聯名卡" && n.includes("精選通路")) return "jkopay-select";
+
+  return null;
+}
+
+// 顯示紅色 toast 提示(3 秒自動消失)
+function showErrorToast(message) {
+  const existing = document.querySelector(".error-toast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.className = "error-toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// 點擊「可回饋 $XX」chip 的處理
+// 如果對應到追蹤中的額度 → 跳確認 → 累加
+// 沒對應 → 跳提示「此項目未追蹤額度」
+async function onCashbackChipClick(btnEl, card, plan, cashback, note) {
+  const quotaId = matchQuotaForCard(card, plan, note);
+
+  if (!quotaId) {
+    showErrorToast(`「${card}${plan ? ' · ' + plan : ''}」\n目前尚未追蹤額度`);
+    return;
+  }
+
+  const config = quotaConfig.find(q => q.id === quotaId);
+  const ok = window.confirm(`你要加入 ${cashback} ${config.unit} 到「${config.card} · ${config.name}」的回饋額度嗎?`);
+  if (!ok) return;
+
+  const key = getQuotaStorageKey(quotaId);
+  const current = parseFloat(localStorage.getItem(key) || "0");
+  await saveToSheets(key, current + cashback);
+
+  // 視覺 feedback
+  const originalHTML = btnEl.innerHTML;
+  btnEl.innerHTML = `✓ 已加入 +${cashback}`;
+  btnEl.classList.add("added");
+  btnEl.disabled = true;
+  setTimeout(() => {
+    btnEl.innerHTML = originalHTML;
+    btnEl.classList.remove("added");
+    btnEl.disabled = false;
+  }, 2000);
 }
 
 async function deleteQuota(id) {
