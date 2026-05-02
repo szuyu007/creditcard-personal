@@ -565,6 +565,7 @@ async function loadCubeBenefits() {
 // 判斷 CUBE 方案目前是否有效(period 未過期、且慶生月要在生日月份)
 // 回傳 true 代表可以顯示在主推薦;false 代表應該排除或顯示為灰色
 function isCubePlanActive(plan) {
+  if (plan.active === false) return false;
   const today = new Date();
   // 期間檢查:period 格式 "YYYY/MM/DD ~ YYYY/MM/DD"
   if (plan.period) {
@@ -718,7 +719,6 @@ const cards = [
 // ============ 方案到期資料 ============
 
 const rewardExpiry = [
-  { cardName: "CUBE 卡", planName: "日本賞", expiryDate: "2026/4/30" },
   { cardName: "CUBE 卡", planName: "玩數位/樂饗購/趣旅行/集精選/慶生月", expiryDate: "2026/6/30" },
   { cardName: "Richart 卡", planName: "7大方案（好饗刷/天天刷等）", expiryDate: "2026/6/30" },
   { cardName: "街口聯名卡", planName: "3.5%精選通路", expiryDate: "2026/12/31" },
@@ -803,7 +803,7 @@ const recommendations = [
     ]
   },
   {
-    store: "Claude（AI 訂閱）",
+    store: "Claude",
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（AI 服務）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "AI 工具指定消費" },
@@ -848,7 +848,7 @@ const recommendations = [
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選" },
     ]
   },
   {
@@ -857,7 +857,7 @@ const recommendations = [
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（外送）" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（外送平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "外送平台指定消費" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選" },
     ]
   },
   {
@@ -866,6 +866,7 @@ const recommendations = [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（網購平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "網購平台指定消費" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 3, type: "現金回饋", pay: "直刷", note: "網路消費 3%（加碼每期上限 150 元）" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（電商平台）4.5%（基本 1% + 加碼 3.5%），不含跨境交易" },
     ]
   },
   {
@@ -874,6 +875,7 @@ const recommendations = [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷", richartPlan: "數趣刷", note: "數趣刷（網購平台）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷", cubePlan: "玩數位", note: "網購平台指定消費" },
       { card: "U Bear 卡", bank: "玉山銀行", rate: 3, type: "現金回饋", pay: "直刷", note: "網路消費 3%（加碼每期上限 150 元）" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（電商平台）4.5%（基本 1% + 加碼 3.5%），含富邦momo APP/電視購物/型錄" },
     ]
   },
   {
@@ -907,7 +909,7 @@ const recommendations = [
     store: "家樂福",
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（超商量販）" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買），簡單選" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買）4.5%（基本 1% + 加碼 3.5%），簡單選" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "量販指定消費" },
     ]
   },
@@ -916,7 +918,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（時尚品味），限街邊獨立店或官網" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "日系購物（UNIQLO 網路商店/直營店）" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買），限街邊獨立店" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買）4.5%（基本 1% + 加碼 3.5%），限街邊獨立店" },
     ]
   },
   {
@@ -941,7 +943,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（王品集團全品牌）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲（限街邊店，非百貨內）" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "王品瘋Pay", note: "百大指定消費（餐飲美食），簡單選。注意：需使用王品瘋Pay付款" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "王品瘋Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。注意：需使用王品瘋Pay付款" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -951,7 +953,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：饗 A Joy、饗饗、旭集、旨醞鐵板、URBAN PARADISE、饗食天堂、果然匯、小福利麻辣鍋、朵頤牛排、開飯川食堂、饗泰多、真珠台灣佳味、貓將" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：官網餐券、饗 A Joy、饗饗、旭集、饗食天堂、果然匯、小福利、開飯、饗泰多、真珠" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -961,7 +963,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：瓦城、非常泰、大心、時時香、樂子 the Diner、1010湘" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：瓦城、非常泰、大心、時時香、樂子 the Diner、1010湘、BOBO" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -971,7 +973,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：漢來海港、島語、漢來蔬食、漢來名人坊、東方樓、聚薈所、漢來上海湯包、溜溜酸菜魚、上菜片皮鴨、樂蔬、翠園粵菜、漢來軒、焰、PAVO餐酒館、日本料理弁慶、福園台菜海鮮、HI-LAI CAFE 等" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：漢來海港、島語、漢來蔬食、漢來名人坊、東方樓、聚薈所、漢來上海湯包、溜溜酸菜魚、上菜片皮鴨、樂蔬、翠園粵菜、漢來軒、焰、PAVO餐酒館、日本料理弁慶、福園台菜海鮮、HI-LAI CAFE 等" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -980,7 +982,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：乾杯、老乾杯、KANPAI CLASSIC、和牛47、黑毛屋、黑毛屋本家、黑毛屋招待所、高木和牛食堂、牛舌佑介" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：乾杯燒肉居酒屋、老乾杯" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -989,7 +991,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：鼎王麻辣鍋、無老鍋、麻一點、六米滷味" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：鼎王麻辣鍋、麻一點、無老鍋" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
@@ -998,14 +1000,14 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲）" },
       { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "樂饗購", note: "國內餐飲" },
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選。旗下品牌：爭鮮、點爭鮮、爭鮮PLUS、定食8、爭鮮gogo" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選。旗下品牌：爭鮮迴轉壽司、爭鮮PLUS、定食8、爭鮮gogo、MAGiC TOUCH" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
   },
   {
     store: "EZTABLE",
     options: [
-      { card: "Unicard", bank: "玉山銀行", rate: 3, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食），簡單選" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（餐飲美食）4.5%（基本 1% + 加碼 3.5%），簡單選" },
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "好饗刷", note: "好饗刷（餐飲訂位平台）" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
     ]
@@ -1021,9 +1023,352 @@ const recommendations = [
   {
     store: "Line Pay（行動支付）",
     options: [
-      { card: "Unicard", bank: "玉山銀行", rate: 3.5, type: "e point", pay: "Line Pay", note: "百大通路任意選，選 LINE Pay 為指定通路之一，可獲 2.5% 加碼 + 1% 基本 = 3.5%" },
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "Line Pay", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 LINE Pay 刷卡" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "Line Pay", note: "精選通路，Line Pay 適用" },
       { card: "Richart 卡", bank: "台新銀行", rate: 2, type: "台新Point", pay: "Line Pay", richartPlan: "假日刷", note: "假日刷，限假日使用" },
+    ]
+  },
+  // ── 行動支付（Unicard 百大）──
+  {
+    store: "玉山Wallet",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "玉山Wallet", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），限國內 TWQR/台灣Pay 通路，不含繳稅費" },
+    ]
+  },
+  {
+    store: "全支付",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "全支付", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 Unicard 刷卡" },
+    ]
+  },
+  {
+    store: "悠遊付",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "悠遊付", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 Unicard 刷卡" },
+    ]
+  },
+  {
+    store: "全盈+PAY",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "全盈+PAY", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 Unicard 刷卡" },
+    ]
+  },
+  {
+    store: "iPASS MONEY",
+    keywords: ["一卡通", "ipass"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "iPASS MONEY", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 Unicard 刷卡" },
+    ]
+  },
+  {
+    store: "icash Pay",
+    keywords: ["icash"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "icash Pay", note: "百大指定消費（行動支付）4.5%（基本 1% + 加碼 3.5%），綁定 Unicard 刷卡" },
+    ]
+  },
+  // ── 加油交通（Unicard 百大）──
+  {
+    store: "台鐵",
+    keywords: ["臺鐵", "火車"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（加油交通）4.5%（基本 1% + 加碼 3.5%），限官網/APP/窗口/自動售票機購票，不含感應進站" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "趣旅行", note: "國內指定交通" },
+    ]
+  },
+  {
+    store: "Uber",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（加油交通）4.5%（基本 1% + 加碼 3.5%），限國內搭乘且幣別為新臺幣" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1%" },
+    ]
+  },
+  {
+    store: "Yoxi",
+    keywords: ["台灣大車隊", "計程車"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（加油交通）4.5%（基本 1% + 加碼 3.5%）" },
+    ]
+  },
+  {
+    store: "55688",
+    keywords: ["台灣大車隊", "機場接送"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（加油交通）4.5%（基本 1% + 加碼 3.5%）" },
+    ]
+  },
+  // ── 國內百貨（Unicard 百大）──
+  {
+    store: "遠東SOGO",
+    aliases: ["SOGO忠孝", "SOGO復興", "SOGO天母", "SOGO中壢", "SOGO新竹", "SOGO高雄"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（指定百貨）" },
+    ]
+  },
+  {
+    store: "遠東百貨",
+    aliases: ["遠百", "大遠百", "Mega City", "遠百信義"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
+      { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "大筆刷", note: "大筆刷（指定百貨）" },
+    ]
+  },
+  {
+    store: "微風百貨",
+    aliases: ["微風廣場", "微風南京", "微風信義", "微風松高", "微風南山", "微風台北車站"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
+    ]
+  },
+  {
+    store: "台北101",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+      { card: "街口聯名卡", bank: "台新銀行", rate: 3.5, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "精選通路（百貨）" },
+    ]
+  },
+  {
+    store: "漢神百貨",
+    keywords: ["漢神巨蛋"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），注意：不含漢神巨蛋" },
+    ]
+  },
+  {
+    store: "華泰名品城",
+    keywords: ["華泰", "outlet"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+    ]
+  },
+  {
+    store: "三井OUTLET",
+    aliases: ["三井", "MITSUI OUTLET"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+    ]
+  },
+  {
+    store: "誠品",
+    aliases: ["誠品生活", "誠品書店", "誠品線上", "eslite"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），含誠品生活、誠品書店（不含百貨店）、誠品線上" },
+    ]
+  },
+  {
+    store: "昇恆昌",
+    keywords: ["免稅", "duty free"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+    ]
+  },
+  {
+    store: "LaLaport",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），限實體卡直刷" },
+    ]
+  },
+  {
+    store: "統一時代百貨",
+    aliases: ["統一時代", "DREAM PLAZA"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（國內百貨）4.5%（基本 1% + 加碼 3.5%），含台北店及 DREAM PLAZA，限實體卡直刷" },
+    ]
+  },
+  // ── 航空旅遊（Unicard 百大）──
+  {
+    store: "中華航空",
+    aliases: ["CI", "china airlines"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "長榮航空",
+    aliases: ["BR", "eva air"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "台灣虎航",
+    aliases: ["tigerair", "虎航"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "樂桃航空",
+    aliases: ["peach", "樂桃"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "日本航空",
+    aliases: ["JAL", "japan airlines"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "酷航",
+    aliases: ["scoot"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限官網/APP/臨櫃購票" },
+    ]
+  },
+  {
+    store: "Trip.com",
+    keywords: ["携程", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），線上付款方享回饋" },
+    ]
+  },
+  {
+    store: "Booking.com",
+    keywords: ["訂房", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），線上付款方享回饋，到店付款不適用" },
+    ]
+  },
+  {
+    store: "Hotels.com",
+    keywords: ["訂房", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），線上付款方享回饋" },
+    ]
+  },
+  {
+    store: "Agoda",
+    keywords: ["訂房", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），線上付款方享回饋，到店付款不適用" },
+    ]
+  },
+  {
+    store: "Expedia",
+    keywords: ["訂房", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），線上付款方享回饋" },
+    ]
+  },
+  {
+    store: "AsiaYo",
+    keywords: ["民宿", "訂房"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%）" },
+    ]
+  },
+  {
+    store: "KKday",
+    keywords: ["旅遊體驗", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%）" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3.5, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "趣旅行", note: "旅遊體驗平台" },
+    ]
+  },
+  {
+    store: "Klook",
+    keywords: ["旅遊體驗", "旅遊平台"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），限國內消費且幣別為新臺幣" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 3.5, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "趣旅行", note: "旅遊體驗平台" },
+    ]
+  },
+  {
+    store: "雄獅旅遊",
+    aliases: ["旅天下"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%），含旅天下，不含加盟商" },
+    ]
+  },
+  {
+    store: "可樂旅遊",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%）" },
+    ]
+  },
+  {
+    store: "東南旅遊",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（航空旅遊）4.5%（基本 1% + 加碼 3.5%）" },
+    ]
+  },
+  // ── 精選商家（Unicard 百大）──
+  {
+    store: "Apple直營店",
+    aliases: ["Apple Store", "蘋果"],
+    keywords: ["apple", "iphone", "mac"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（精選商家）4.5%（基本 1% + 加碼 3.5%），含台北101/信義A13直營店及官網，不含國外Apple Store" },
+    ]
+  },
+  {
+    store: "小米台灣",
+    aliases: ["小米之家", "小米專賣店", "Xiaomi"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（精選商家）4.5%（基本 1% + 加碼 3.5%），含官網/小米之家/小米專賣店，不含蝦皮/momo 等平台" },
+    ]
+  },
+  {
+    store: "全國電子",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（精選商家）4.5%（基本 1% + 加碼 3.5%），含官網線上購物" },
+    ]
+  },
+  {
+    store: "燦坤",
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（精選商家）4.5%（基本 1% + 加碼 3.5%），含官網線上購物" },
+    ]
+  },
+  {
+    store: "迪卡儂",
+    aliases: ["Decathlon"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（精選商家）4.5%（基本 1% + 加碼 3.5%），含官網線上購物" },
+    ]
+  },
+  // ── 電商平台（補 Unicard 百大）──
+  {
+    store: "淘寶網",
+    aliases: ["手機淘寶", "淘寶Lite", "taobao"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（電商平台）4.5%（基本 1% + 加碼 3.5%），含手機淘寶、淘寶Lite" },
+    ]
+  },
+  {
+    store: "Coupang 酷澎",
+    aliases: ["酷澎", "coupang"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（電商平台）4.5%（基本 1% + 加碼 3.5%），含台灣APP/官網（火箭速配+火箭跨境）" },
+    ]
+  },
+  // ── ESG 消費（Unicard 百大）──
+  {
+    store: "Gogoro",
+    keywords: ["gogoro", "電池資費", "換電"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（ESG）4.5%（基本 1% + 加碼 3.5%），限 Gogoro 電池資費" },
+    ]
+  },
+  {
+    store: "YouBike 2.0",
+    keywords: ["ubike", "公共自行車", "youbike"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（ESG）4.5%（基本 1% + 加碼 3.5%），限 YouBike 2.0 App 或掃碼租借，不含悠遊卡功能" },
+    ]
+  },
+  {
+    store: "特斯拉",
+    aliases: ["Tesla"],
+    options: [
+      { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（ESG）4.5%（基本 1% + 加碼 3.5%）" },
     ]
   },
 ];
