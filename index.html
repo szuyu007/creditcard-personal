@@ -487,21 +487,13 @@
 
   <!-- Tab 2: 選卡建議 -->
   <div id="tab-pick" class="tab-content active">
-    <div class="section-title">常用</div>
-    <div class="quick-select-grid">
-      <button class="quick-btn" onclick="selectStore('7-11', event)">7-11</button>
-      <button class="quick-btn" onclick="selectStore('全家', event)">全家</button>
-      <button class="quick-btn" onclick="selectStore('Line Pay（行動支付）', event)">Line Pay</button>
-      <button class="quick-btn" onclick="selectStore('屈臣氏', event)">屈臣氏</button>
-      <button class="quick-btn" onclick="selectStore('高鐵', event)">高鐵</button>
-      <button class="quick-btn" onclick="selectStore('王品集團', event)">王品集團</button>
-      <button class="quick-btn" onclick="selectStore('家樂福', event)">家樂福</button>
-      <button class="quick-btn" onclick="selectStore('新光三越', event)">新光三越</button>
-      <button class="quick-btn" onclick="selectStore('瓦城集團', event)">瓦城集團</button>
-      <button class="quick-btn" onclick="selectStore('饗賓集團', event)">饗賓集團</button>
-      <button class="quick-btn" onclick="selectStore('漢來美食', event)">漢來美食</button>
-      <button class="quick-btn" onclick="selectStore('街口支付', event)">街口支付</button>
+    <div id="expiry-banner"></div>
+    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+      <div class="section-title">常用</div>
+      <button id="reset-usage-btn" onclick="resetStoreUsage()"
+        style="font-size:12px; color:#aaa; background:none; border:none; cursor:pointer; padding:4px;">重設常用</button>
     </div>
+    <div id="quick-select-grid" class="quick-select-grid"></div>
 
     <div class="section-title" style="margin-top:16px;">搜尋其他</div>
     <div class="search-wrapper" style="position:relative;">
@@ -581,6 +573,70 @@ function isCubePlanActive(plan) {
     return false;
   }
   return true;
+}
+
+// ============ 到期日共用工具 ============
+
+// 吃 "YYYY/MM/DD" 或 "YYYY/M/D" 字串,回傳距今天數(負數=已過期;無法解析回 null)
+// 注意:跟 getDaysUntil(day) 不同 — 後者吃「幾號」算下一個帳單/繳費日,語意不同勿混用
+function getDaysUntilExpiry(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split("/").map(Number);
+  if (!y || !m || !d) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expiry = new Date(y, m - 1, d);
+  expiry.setHours(0, 0, 0, 0);
+  return Math.ceil((expiry - today) / 86400000);
+}
+
+// 從 cube-benefits.json 對應方案的 period 後半段取到期日字串(回 "YYYY/M/D" 或 null)
+// 讓選卡頁的 CUBE 到期一律以 JSON period 為單一真相,免手動同步 rewardExpiry
+function getCubePlanExpiry(planName) {
+  if (!cubeBenefitsData || !planName) return null;
+  const plan = cubeBenefitsData.plans.find(p => p.name === planName);
+  if (!plan || !plan.period) return null;
+  const m = plan.period.match(/[~\-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  return m ? `${m[1]}/${+m[2]}/${+m[3]}` : null;
+}
+
+// 給一個到期日字串,產生「方案剩 N 天」標記 HTML(複用帳單頁紅黃配色)
+// >30 天回空字串(不顯示,避免雜訊);無法解析也回空字串
+function expiryTagHtml(dateStr) {
+  const days = getDaysUntilExpiry(dateStr);
+  if (days === null) return "";
+  let cls = "plan-expiry-tag";
+  let txt;
+  if (days < 0) { cls += " expiry-danger"; txt = "方案已過期"; }
+  else if (days <= 7) { cls += " expiry-danger"; txt = `方案剩 ${days} 天到期`; }
+  else if (days <= 30) { cls += " expiry-warning"; txt = `方案剩 ${days} 天`; }
+  else return "";
+  return `<span class="${cls}">${txt}</span>`;
+}
+
+// 選卡頁頂端橫幅:有任何方案 ≤7 天到期時顯示一條紅色提示
+// CUBE 用 cube-benefits.json 的 period(單一真相),其餘卡用 rewardExpiry
+function renderExpiryBanner() {
+  const el = document.getElementById("expiry-banner");
+  if (!el) return;
+  const items = [];
+  rewardExpiry.forEach(e => {
+    if (e.cardName === "CUBE 卡") return; // CUBE 改用 JSON period 計算
+    const d = getDaysUntilExpiry(e.expiryDate);
+    if (d !== null && d >= 0 && d <= 7) items.push(`${e.cardName} ${e.planName}（剩 ${d} 天）`);
+  });
+  if (cubeBenefitsData && cubeBenefitsData.plans) {
+    cubeBenefitsData.plans.forEach(p => {
+      if (!isCubePlanActive(p) || !p.period) return;
+      const m = p.period.match(/[~\-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      if (!m) return;
+      const d = getDaysUntilExpiry(`${m[1]}/${+m[2]}/${+m[3]}`);
+      if (d !== null && d >= 0 && d <= 7) items.push(`CUBE ${p.name}（剩 ${d} 天）`);
+    });
+  }
+  el.innerHTML = items.length
+    ? `<div class="cube-switch-note" style="background:#fff5f5; color:#e53935;">⚠️ 即將到期：${items.join("、")}</div>`
+    : "";
 }
 
 // 在 CUBE 權益資料中搜尋店家(給搜尋下拉用),回傳 [{plan, rate, note, merchantName}]
@@ -1495,6 +1551,41 @@ function renderBilling() {
 
 // ============ 選卡建議 ============
 
+// 常用按鈕:依使用頻率自動排序,歷史不足時用預設清單補滿
+const DEFAULT_QUICK_STORES = ["7-11", "全家", "Line Pay（行動支付）", "屈臣氏", "高鐵", "王品集團", "家樂福", "新光三越"];
+const QUICK_BTN_COUNT = 8;
+// 部分店名太長,按鈕上顯示短名(實際傳給 selectStore 的仍是完整名)
+const QUICK_DISPLAY_NAME = { "Line Pay（行動支付）": "Line Pay" };
+
+// 記錄一次選店(只在使用者主動選店的三個進入點呼叫,不在改金額時呼叫)
+function recordStoreUsage(storeName) {
+  if (!storeName) return;
+  const data = JSON.parse(localStorage.getItem("store-usage") || "{}");
+  data[storeName] = (data[storeName] || 0) + 1;
+  localStorage.setItem("store-usage", JSON.stringify(data));
+}
+
+// 依使用頻率(高到低)+ 預設清單補滿,render 出前 QUICK_BTN_COUNT 個常用按鈕
+function renderQuickButtons() {
+  const grid = document.getElementById("quick-select-grid");
+  if (!grid) return;
+  const data = JSON.parse(localStorage.getItem("store-usage") || "{}");
+  const ranked = Object.entries(data).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  const stores = [...new Set([...ranked, ...DEFAULT_QUICK_STORES])].slice(0, QUICK_BTN_COUNT);
+  const esc = s => s.replace(/'/g, "\\'");
+  grid.innerHTML = stores.map(s => {
+    const label = QUICK_DISPLAY_NAME[s] || s;
+    return `<button class="quick-btn" onclick="selectStore('${esc(s)}', event)">${label}</button>`;
+  }).join("");
+}
+
+// 清除常用記錄,恢復預設清單
+function resetStoreUsage() {
+  if (!confirm("確定清除常用記錄？將恢復預設清單。")) return;
+  localStorage.removeItem("store-usage");
+  renderQuickButtons();
+}
+
 function selectStore(storeName, evt) {
   document.getElementById("store-search").value = "";
   document.getElementById("search-dropdown").classList.add("hidden");
@@ -1509,7 +1600,11 @@ function selectStore(storeName, evt) {
   }
   if (btn) btn.classList.add("selected");
   currentStore = storeName;
-  showRecommendationFor(storeName);
+  recordStoreUsage(storeName);
+  // CUBE-only 店名(如「I'm donut?」)在 recommendations 找不到 → 走 CUBE-only 結果
+  // 否則 showRecommendationFor 會因 resolveStoreEntry 回 null 而隱藏結果,使用者看不到東西
+  if (resolveStoreEntry(storeName)) showRecommendationFor(storeName);
+  else showCubeOnlyRecommendation(storeName);
 }
 
 function onSearchInput() {
@@ -1589,6 +1684,7 @@ function pickFromSearch(storeName) {
   document.getElementById("search-dropdown").classList.add("hidden");
   document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
   currentStore = storeName;
+  recordStoreUsage(storeName);
   showRecommendationFor(storeName);
 }
 
@@ -1598,6 +1694,7 @@ function pickFromCubeSearch(storeName) {
   document.getElementById("search-dropdown").classList.add("hidden");
   document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
   currentStore = storeName;
+  recordStoreUsage(storeName);
   showCubeOnlyRecommendation(storeName);
 }
 
@@ -1625,9 +1722,16 @@ function showCubeOnlyRecommendation(storeName) {
       <div class="cube-extra-title">此店家出現在以下 CUBE 方案</div>`;
   matches.forEach(m => {
     const cashback = amount > 0 ? Math.floor(amount * m.rate / 100) : null;
+    // 方案到期標記:直接解析已帶回的 planPeriod 後半段
+    let expiryTag = "";
+    if (m.planPeriod) {
+      const pm = m.planPeriod.match(/[~\-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      if (pm) expiryTag = expiryTagHtml(`${pm[1]}/${+pm[2]}/${+pm[3]}`);
+    }
     html += `<div class="cube-extra-item">
       <div>
         <span class="plan-name">${m.planName}</span>
+        ${expiryTag}
         ${m.note ? `<div class="plan-note">${m.note}</div>` : ""}
       </div>
       <span class="plan-rate">${m.rate}%${cashback !== null ? ` / $${cashback}` : ''}</span>
@@ -1772,6 +1876,12 @@ function showRecommendationFor(storeName) {
     const planEsc = (opt.cubePlan || opt.richartPlan || "").replace(/'/g, "\\'");
     const noteEsc = (opt.note || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
+    // 方案到期標記:CUBE 用 JSON period 為準,其他卡查 rewardExpiry
+    const expiryDate = opt.cubePlan
+      ? getCubePlanExpiry(opt.cubePlan)
+      : (rewardExpiry.find(e => e.cardName === opt.card) || {}).expiryDate;
+    const expiryTag = expiryTagHtml(expiryDate);
+
     html += `
       <div class="result-item rank-${rank}">
         <span class="result-rank">${rank === 1 ? "推薦" : `第${rank}名`}</span>
@@ -1781,6 +1891,7 @@ function showRecommendationFor(storeName) {
           <span class="result-tag tag-rate">回饋 ${opt.rate}%</span>
           <span class="result-tag tag-type">${opt.type}</span>
           <span class="result-tag tag-pay">${opt.pay}</span>
+          ${expiryTag}
           ${cashback !== null ? `<button class="chip-cashback" onclick="onCashbackChipClick(this, '${cardEsc}', '${planEsc}', ${cashback}, '${noteEsc}')"><span class="plus-icon">＋</span>可回饋 $${cashback}</button>` : ""}
         </div>
         <div class="result-reason">${opt.note}</div>
@@ -1810,6 +1921,11 @@ function switchTab(tabName, btn) {
   document.querySelectorAll(".tab-bar button").forEach(el => el.classList.remove("active"));
   document.getElementById("tab-" + tabName).classList.add("active");
   btn.classList.add("active");
+  // 切回選卡頁時重排常用按鈕(用最新使用頻率;不在記錄當下即時重排避免按鈕跳動)
+  if (tabName === "pick") {
+    renderQuickButtons();
+    renderExpiryBanner();
+  }
 }
 
 // ============ ICS 下載 ============
@@ -2099,9 +2215,13 @@ checkExpiryNotifications();
 // ============ 初始化 ============
 
 renderBilling();
-renderQuota();       // 先用 localStorage 快速顯示
-syncFromSheets();    // 再從 Sheets 拉取最新資料更新畫面
-loadCubeBenefits();  // 載入 CUBE 權益資料(供搜尋 fallback 使用)
+renderQuota();          // 先用 localStorage 快速顯示
+syncFromSheets();       // 再從 Sheets 拉取最新資料更新畫面
+renderQuickButtons();   // 常用按鈕(不依賴 CUBE 資料,先 render 避免首屏空白)
+// CUBE 資料是 async 載入,載完後再 render 依賴它的橫幅(到期橫幅含 CUBE 方案)
+loadCubeBenefits().then(() => {
+  renderExpiryBanner();
+});
 </script>
 
 </body>

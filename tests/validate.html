@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>資料驗證 — 信用卡回饋 App</title>
+  <style>
+    body { font-family: -apple-system, "PingFang TC", sans-serif; max-width: 760px; margin: 0 auto; padding: 24px; background: #f7f7f7; color: #222; }
+    h1 { font-size: 20px; }
+    .summary { font-size: 16px; font-weight: 700; padding: 14px 16px; border-radius: 10px; margin: 16px 0; }
+    .summary.ok { background: #e8f5e9; color: #2e7d32; }
+    .summary.fail { background: #fff5f5; color: #c62828; }
+    .group { background: #fff; border-radius: 10px; padding: 4px 16px; margin-bottom: 16px; }
+    .group h2 { font-size: 15px; color: #555; }
+    .row { display: flex; gap: 8px; padding: 7px 0; font-size: 14px; border-top: 1px solid #f0f0f0; align-items: baseline; }
+    .row:first-of-type { border-top: none; }
+    .icon { flex: 0 0 auto; font-size: 15px; }
+    .pass .icon { color: #2e7d32; }
+    .fail .icon { color: #c62828; }
+    .warn .icon { color: #f57c00; }
+    .detail { color: #888; font-size: 12px; margin-left: 4px; }
+    .note { font-size: 12px; color: #999; margin-top: 24px; line-height: 1.6; }
+    code { background: #eee; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 資料驗證</h1>
+  <div id="summary" class="summary">驗證中…</div>
+  <div id="results"></div>
+  <div class="note">
+    這個頁面只讀取資料、不修改任何東西。改完回饋資料後雙擊打開它，看是不是全綠。<br>
+    若顯示「載入失敗」（<code>file://</code> 下瀏覽器擋了 fetch），請改用本機伺服器開，見 <code>tests/README.md</code>。
+  </div>
+
+<script>
+// ============ 工具 ============
+
+// 從原始碼字串抽出 `const NAME = [ ... ];`(用方括號平衡,正確處理巢狀陣列)
+function extractArrayLiteral(src, name) {
+  const start = src.indexOf("const " + name + " = [");
+  if (start < 0) throw new Error(`找不到 const ${name}`);
+  const bracketStart = src.indexOf("[", start);
+  let depth = 0, i = bracketStart;
+  for (; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === "[") depth++;
+    else if (ch === "]") { depth--; if (depth === 0) break; }
+  }
+  const literal = src.slice(bracketStart, i + 1);
+  // eslint-disable-next-line no-new-func
+  return new Function("return " + literal)();
+}
+
+// 跟 index.html 同一份邏輯(刻意複製,確保驗證口徑一致)
+function getDaysUntilExpiry(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split("/").map(Number);
+  if (!y || !m || !d) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const expiry = new Date(y, m - 1, d); expiry.setHours(0, 0, 0, 0);
+  return Math.ceil((expiry - today) / 86400000);
+}
+
+// matchQuotaForCard 的對映規則(與 index.html 同步;若那邊改了,這裡也要改)
+function matchQuotaForCard(card, plan, note) {
+  const n = note || "";
+  if (card === "Unicard" && n.includes("百大")) return "unicard-elite";
+  if (card === "U Bear 卡" && n.includes("指定數位訂閱")) return "ubear-digital";
+  if (card === "U Bear 卡" && n.includes("網路消費 3%")) return "ubear-online";
+  if (card === "街口聯名卡" && n.includes("精選通路")) return "jkopay-select";
+  return null;
+}
+
+// ============ 結果收集 ============
+
+const groups = [];
+let curGroup = null;
+function group(title) { curGroup = { title, rows: [] }; groups.push(curGroup); }
+function check(ok, label, detail) {
+  curGroup.rows.push({ status: ok ? "pass" : "fail", label, detail: detail || "" });
+}
+function warn(cond, label, detail) {
+  curGroup.rows.push({ status: cond ? "warn" : "pass", label, detail: detail || "" });
+}
+
+// ============ 主驗證 ============
+
+async function run() {
+  let cube, html, recommendations, rewardExpiry, quotaConfig;
+
+  // ---- 載入資料 ----
+  group("0. 載入資料");
+  try {
+    const r = await fetch("../data/cube-benefits.json");
+    cube = await r.json();
+    check(true, "cube-benefits.json 載入成功");
+  } catch (e) {
+    check(false, "cube-benefits.json 載入失敗", e.message + "（多半是 file:// 被擋，請用本機伺服器，見 README）");
+    render(); return;
+  }
+  try {
+    const r = await fetch("../index.html");
+    html = await r.text();
+    recommendations = extractArrayLiteral(html, "recommendations");
+    rewardExpiry = extractArrayLiteral(html, "rewardExpiry");
+    quotaConfig = extractArrayLiteral(html, "quotaConfig");
+    check(true, "index.html 資料陣列抽取成功",
+      `recommendations ${recommendations.length} 筆、rewardExpiry ${rewardExpiry.length} 筆、quotaConfig ${quotaConfig.length} 筆`);
+  } catch (e) {
+    check(false, "index.html 抽取失敗", e.message);
+    render(); return;
+  }
+
+  // ---- 1. CUBE JSON 結構 ----
+  group("1. cube-benefits.json 結構");
+  check(Array.isArray(cube.plans), "有 plans 陣列");
+  (cube.plans || []).forEach((p, i) => {
+    check(!!(p.id && p.name && Array.isArray(p.merchants)),
+      `plan #${i + 1} 有 id/name/merchants`, p.name || "(未命名)");
+  });
+
+  // ---- 2. CUBE merchants 欄位 ----
+  group("2. CUBE 商家欄位");
+  const periodRe = /^\d{4}\/\d{2}\/\d{2}\s*~\s*\d{4}\/\d{2}\/\d{2}$/;
+  (cube.plans || []).forEach(p => {
+    // period 格式(慶生月可為 null)
+    if (p.period) {
+      check(periodRe.test(p.period), `「${p.name}」period 格式正確`, p.period);
+    }
+    let badRate = 0, badType = 0, badName = 0;
+    (p.merchants || []).forEach(m => {
+      if (!m.name) badName++;
+      if (typeof m.rate !== "number") badRate++;
+      if (m.type && !["merchant", "category"].includes(m.type)) badType++;
+    });
+    check(badName === 0, `「${p.name}」每筆 merchant 有 name`, badName ? `${badName} 筆缺 name` : `${(p.merchants || []).length} 筆`);
+    check(badRate === 0, `「${p.name}」rate 都是數字`, badRate ? `${badRate} 筆 rate 不是數字！` : "");
+    check(badType === 0, `「${p.name}」type 都是 merchant/category`, badType ? `${badType} 筆 type 不合法` : "");
+  });
+
+  // ---- 3. rewardExpiry ↔ CUBE period 一致性 ----
+  group("3. 到期日一致性（rewardExpiry ↔ CUBE period）");
+  const cubeExpiry = rewardExpiry.find(e => e.cardName === "CUBE 卡");
+  check(!!cubeExpiry, "rewardExpiry 有 CUBE 卡那筆");
+  if (cubeExpiry) {
+    // 蒐集所有 active CUBE 方案的 period 結束日
+    const ends = new Set();
+    (cube.plans || []).forEach(p => {
+      if (p.active === false || !p.period) return;
+      const m = p.period.match(/[~\-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      if (m) ends.add(`${m[1]}/${+m[2]}/${+m[3]}`);
+    });
+    const re = cubeExpiry.expiryDate;
+    const reNorm = re.split("/").map(Number).join("/"); // 去補零後比對
+    const matched = [...ends].some(e => e === reNorm);
+    warn(!matched,
+      "rewardExpiry 的 CUBE 到期日 與 JSON period 結束日一致",
+      matched ? `兩邊都是 ${reNorm}` : `⚠️ rewardExpiry 寫 ${re}，但 JSON active 方案結束日是 ${[...ends].join("、") || "(無)"} — 改了一邊忘了另一邊？`);
+  }
+
+  // ---- 4. rewardExpiry 格式 ----
+  group("4. rewardExpiry 格式");
+  rewardExpiry.forEach((e, i) => {
+    const ok = e.cardName && e.planName && e.expiryDate && getDaysUntilExpiry(e.expiryDate) !== null;
+    check(ok, `#${i + 1} ${e.cardName || "(缺卡名)"}`, ok ? `到期 ${e.expiryDate}` : "欄位不全或日期無法解析");
+  });
+
+  // ---- 5. recommendations 完整性 ----
+  group("5. recommendations 完整性");
+  const reqOptFields = ["card", "bank", "rate", "type", "pay"];
+  let missingOpt = 0, badOptRate = 0, emptyOpts = 0;
+  recommendations.forEach(r => {
+    if (!Array.isArray(r.options) || r.options.length === 0) { emptyOpts++; return; }
+    r.options.forEach(o => {
+      if (reqOptFields.some(f => o[f] === undefined)) missingOpt++;
+      if (typeof o.rate !== "number") badOptRate++;
+    });
+  });
+  check(emptyOpts === 0, "每個 store 都有非空 options", emptyOpts ? `${emptyOpts} 筆 options 為空` : `共 ${recommendations.length} 筆`);
+  check(missingOpt === 0, "每個 option 有 card/bank/rate/type/pay", missingOpt ? `${missingOpt} 個 option 缺欄位` : "");
+  check(badOptRate === 0, "option 的 rate 都是數字", badOptRate ? `${badOptRate} 個 rate 不是數字！` : "");
+  // store 名重複(現有合法重複,只警告:resolveStoreEntry 用 find 只取第一筆)
+  const seen = {}, dups = [];
+  recommendations.forEach(r => {
+    const k = r.store.toLowerCase();
+    if (seen[k]) { if (!dups.includes(r.store)) dups.push(r.store); }
+    seen[k] = true;
+  });
+  warn(dups.length > 0, "store 名稱無重複",
+    dups.length ? `重複: ${dups.join("、")}（resolveStoreEntry 只會用第一筆，後面的會被吃掉 — 確認這是預期的）` : "");
+
+  // ---- 6. quotaConfig ----
+  group("6. quotaConfig");
+  const idSet = new Set();
+  let badQuota = 0, dupId = 0;
+  quotaConfig.forEach(q => {
+    if (!(q.id && q.card && q.name && q.unit && typeof q.limit === "number" && q.resetDay !== undefined)) badQuota++;
+    if (idSet.has(q.id)) dupId++; idSet.add(q.id);
+  });
+  check(badQuota === 0, "每筆有 id/card/name/limit/unit/resetDay 且 limit 為數字", badQuota ? `${badQuota} 筆有問題` : `共 ${quotaConfig.length} 筆`);
+  check(dupId === 0, "id 不重複", dupId ? `${dupId} 個重複 id` : "");
+
+  // ---- 7. matchQuotaForCard 對映 ----
+  group("7. 額度對映（matchQuotaForCard 不失效）");
+  // 掃 recommendations 裡「應該要能對到額度」的 option(note 含特定關鍵字),確認 matcher 命中
+  const triggers = ["百大", "指定數位訂閱", "網路消費 3%", "精選通路"];
+  let orphan = 0; const orphanList = [];
+  recommendations.forEach(r => {
+    (r.options || []).forEach(o => {
+      const note = o.note || "";
+      if (triggers.some(t => note.includes(t))) {
+        const id = matchQuotaForCard(o.card, o.cubePlan || o.richartPlan, note);
+        if (!id) { orphan++; orphanList.push(`${o.card}@${r.store}`); }
+        else if (!idSet.has(id)) { orphan++; orphanList.push(`${o.card}→${id}(quotaConfig 無此 id)`); }
+      }
+    });
+  });
+  check(orphan === 0, "含額度關鍵字的 option 都能對到 quotaConfig",
+    orphan ? `${orphan} 筆對不到: ${orphanList.slice(0, 5).join("、")}${orphanList.length > 5 ? "…" : ""}` : "");
+
+  render();
+}
+
+// ============ 渲染 ============
+
+function render() {
+  const resultsEl = document.getElementById("results");
+  let pass = 0, fail = 0, warnCnt = 0;
+  resultsEl.innerHTML = groups.map(g => {
+    const rows = g.rows.map(r => {
+      if (r.status === "pass") pass++;
+      else if (r.status === "fail") fail++;
+      else warnCnt++;
+      const icon = r.status === "pass" ? "✅" : r.status === "fail" ? "❌" : "⚠️";
+      return `<div class="row ${r.status}">
+        <span class="icon">${icon}</span>
+        <span>${r.label}${r.detail ? `<span class="detail">— ${r.detail}</span>` : ""}</span>
+      </div>`;
+    }).join("");
+    return `<div class="group"><h2>${g.title}</h2>${rows}</div>`;
+  }).join("");
+
+  const summary = document.getElementById("summary");
+  if (fail > 0) {
+    summary.className = "summary fail";
+    summary.textContent = `❌ ${fail} 項失敗 ・ ${warnCnt} 項警告 ・ ${pass} 項通過`;
+  } else {
+    summary.className = "summary ok";
+    summary.textContent = `✅ 全部通過！${pass} 項通過${warnCnt ? ` ・ ${warnCnt} 項警告（可接受）` : ""}`;
+  }
+}
+
+run().catch(e => {
+  document.getElementById("summary").className = "summary fail";
+  document.getElementById("summary").textContent = "❌ 驗證程式出錯：" + e.message;
+});
+</script>
+</body>
+</html>
