@@ -1552,8 +1552,9 @@ function renderBilling() {
 // ============ 選卡建議 ============
 
 // 常用按鈕:依使用頻率自動排序,歷史不足時用預設清單補滿
-const DEFAULT_QUICK_STORES = ["7-11", "全家", "Line Pay（行動支付）", "屈臣氏", "高鐵", "王品集團", "家樂福", "新光三越"];
-const QUICK_BTN_COUNT = 8;
+// 9 個剛好在 3 欄網格排成整齊的 3×3
+const DEFAULT_QUICK_STORES = ["7-11", "全家", "全聯", "康是美", "Line Pay（行動支付）", "屈臣氏", "高鐵", "家樂福", "新光三越"];
+const QUICK_BTN_COUNT = 9;
 // 部分店名太長,按鈕上顯示短名(實際傳給 selectStore 的仍是完整名)
 const QUICK_DISPLAY_NAME = { "Line Pay（行動支付）": "Line Pay" };
 
