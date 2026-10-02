@@ -728,6 +728,18 @@ function getCubePlanExpiry(planName) {
   return m ? `${m[1]}/${+m[2]}/${+m[3]}` : null;
 }
 
+// Unicard UP選效期以 unicard-benefits.json 的 effective_period.end 為單一真相,免手動同步 rewardExpiry
+function getUnicardPlanExpiry() {
+  const end = unicardBenefitsData?.effective_period?.end;
+  return end ? isoToSlashDate(end) : null;
+}
+
+// Richart 效期以 richart-benefits.json 的 effective_period.core_terms_end 為單一真相,免手動同步 rewardExpiry
+function getRichartPlanExpiry() {
+  const end = richartBenefitsData?.effective_period?.core_terms_end;
+  return end ? isoToSlashDate(end) : null;
+}
+
 // 給一個到期日字串,產生「方案剩 N 天」標記 HTML(複用帳單頁紅黃配色)
 // >30 天回空字串(不顯示,避免雜訊);無法解析也回空字串
 function expiryTagHtml(dateStr) {
@@ -749,7 +761,8 @@ function renderExpiryBanner() {
   if (!el) return;
   const items = [];
   rewardExpiry.forEach(e => {
-    if (e.cardName === "CUBE 卡") return; // CUBE 改用 JSON period 計算
+    // CUBE/Unicard/Richart 改用各自 JSON 的效期計算,這裡排除避免用到過時的手動日期
+    if (e.cardName === "CUBE 卡" || e.cardName === "Unicard" || e.cardName === "Richart 卡") return;
     const d = getDaysUntilExpiry(e.expiryDate);
     if (d !== null && d >= 0 && d <= 7) items.push(`${e.cardName} ${e.planName}（剩 ${d} 天）`);
   });
@@ -761,6 +774,16 @@ function renderExpiryBanner() {
       const d = getDaysUntilExpiry(`${m[1]}/${+m[2]}/${+m[3]}`);
       if (d !== null && d >= 0 && d <= 7) items.push(`CUBE ${p.name}（剩 ${d} 天）`);
     });
+  }
+  const unicardExpiry = getUnicardPlanExpiry();
+  if (unicardExpiry) {
+    const d = getDaysUntilExpiry(unicardExpiry);
+    if (d !== null && d >= 0 && d <= 7) items.push(`Unicard UP選（剩 ${d} 天）`);
+  }
+  const richartExpiry = getRichartPlanExpiry();
+  if (richartExpiry) {
+    const d = getDaysUntilExpiry(richartExpiry);
+    if (d !== null && d >= 0 && d <= 7) items.push(`Richart 7+1刷（剩 ${d} 天）`);
   }
   el.innerHTML = items.length
     ? `<div class="cube-switch-note" style="background:#fff5f5; color:#e53935;">⚠️ 即將到期：${items.join("、")}</div>`
@@ -904,9 +927,9 @@ const cards = [
 
 const rewardExpiry = [
   { cardName: "CUBE 卡", planName: "秋日遊", expiryDate: "2026/11/30" },
-  { cardName: "Richart 卡", planName: "7大方案（好饗刷/天天刷等）", expiryDate: "2026/6/30" },
+  { cardName: "Richart 卡", planName: "7+1刷（好饗刷/天天刷等）", expiryDate: "2027/12/31" },
   { cardName: "街口聯名卡", planName: "3.5%精選通路", expiryDate: "2026/12/31" },
-  { cardName: "Unicard", planName: "百大指定消費加碼", expiryDate: "2026/6/30" },
+  { cardName: "Unicard", planName: "UP選百大指定消費加碼", expiryDate: "2026/12/31" },
   { cardName: "U Bear 卡", planName: "熊任務/熊好刷/熊潮流", expiryDate: "2026/8/31" },
   { cardName: "Pi 拍錢包卡", planName: "加碼方案", expiryDate: "2026/8/31" },
 ];
@@ -2122,10 +2145,12 @@ function showRecommendationFor(storeName) {
     const planEsc = (opt.cubePlan || opt.richartPlan || "").replace(/'/g, "\\'");
     const noteEsc = (opt.note || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-    // 方案到期標記:CUBE 用 JSON period 為準,其他卡查 rewardExpiry
-    const expiryDate = opt.cubePlan
-      ? getCubePlanExpiry(opt.cubePlan)
-      : (rewardExpiry.find(e => e.cardName === opt.card) || {}).expiryDate;
+    // 方案到期標記:CUBE/Unicard/Richart 用各自 JSON 的效期為準,其餘卡查 rewardExpiry
+    let expiryDate;
+    if (opt.cubePlan) expiryDate = getCubePlanExpiry(opt.cubePlan);
+    else if (opt.card === "Unicard") expiryDate = getUnicardPlanExpiry();
+    else if (opt.card === "Richart 卡") expiryDate = getRichartPlanExpiry();
+    else expiryDate = (rewardExpiry.find(e => e.cardName === opt.card) || {}).expiryDate;
     const expiryTag = expiryTagHtml(expiryDate);
 
     html += `
@@ -2464,12 +2489,10 @@ renderBilling();
 renderQuota();          // 先用 localStorage 快速顯示
 syncFromSheets();       // 再從 Sheets 拉取最新資料更新畫面
 renderQuickButtons();   // 常用按鈕(不依賴 CUBE 資料,先 render 避免首屏空白)
-// CUBE 資料是 async 載入,載完後再 render 依賴它的橫幅(到期橫幅含 CUBE 方案)
-loadCubeBenefits().then(() => {
+// CUBE/Unicard/Richart 資料都是 async 載入,全部載完後再 render 依賴它們的到期橫幅
+Promise.all([loadCubeBenefits(), loadUnicardBenefits(), loadRichartBenefits()]).then(() => {
   renderExpiryBanner();
 });
-loadUnicardBenefits();
-loadRichartBenefits();
 </script>
 
 </body>
