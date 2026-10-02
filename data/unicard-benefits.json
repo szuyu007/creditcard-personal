@@ -1,0 +1,413 @@
+{
+  "schema_version": "0.2",
+  "card_id": "ESUN_UNICARD",
+  "issuer": "E.SUN Bank",
+  "program_name": "Unicard UP選",
+  "effective_period": {
+    "start": "2026-07-01",
+    "end": "2026-12-31",
+    "timezone": "Asia/Taipei"
+  },
+  "source_provenance": [
+    {
+      "source_id": "esun_unicard_main",
+      "type": "official_bank_page",
+      "url": "https://www.esunbank.com/zh-tw/personal/credit-card/intro/bank-card/unicard",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "UP plan rate/cap",
+        "plan mechanics",
+        "designated spending list",
+        "payment-channel restrictions",
+        "rounding",
+        "billing-name recognition"
+      ]
+    },
+    {
+      "source_id": "esun_general_spend_exclusions",
+      "type": "official_bank_notice",
+      "url": "https://event.esunbank.com.tw/credit/notice/index.html",
+      "retrieved_date": "2026-10-02",
+      "notice_date": "2026-09-01",
+      "covers": [
+        "general-spend exclusions"
+      ]
+    },
+    {
+      "source_id": "user_verified_faq_notes",
+      "type": "user_provided",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "rounding rule exact wording",
+        "UP subscription dual-task requirement",
+        "monthly posting cutoff (next month day 10/17)",
+        "account-grouping (歸戶) cap scope",
+        "full EU/EEA country exclusion list"
+      ]
+    }
+  ],
+  "reward_currency": {
+    "name": "E.SUN e point",
+    "value_twd_per_point": 1
+  },
+  "runtime_assumption": {
+    "selected_plan": "UP",
+    "note": "User states UP plan is active. Qualification/subscription rules are retained for provenance but evaluator may accept plan_active=true as runtime state."
+  },
+  "reward_layers": [
+    {
+      "rule_id": "UNICARD_BASE_GENERAL_1PCT",
+      "layer": "base",
+      "rate_bps": 100,
+      "rate_percent": 1.0,
+      "cap_points": null,
+      "conditions_all": [
+        "transaction_is_general_spend",
+        "e_bill_enabled",
+        "esun_twd_account_autopay_enabled",
+        "autopay_successful"
+      ],
+      "fallbacks": [
+        {
+          "conditions_all": ["transaction_is_general_spend", "e_bill_enabled"],
+          "rate_bps": 30,
+          "rate_percent": 0.3
+        },
+        {
+          "conditions_all": ["transaction_is_general_spend", "e_bill_disabled"],
+          "rate_bps": 0,
+          "rate_percent": 0.0
+        }
+      ]
+    },
+    {
+      "rule_id": "UNICARD_UP_DESIGNATED_BONUS",
+      "layer": "bonus",
+      "rate_bps": 350,
+      "rate_percent": 3.5,
+      "cap": {
+        "points": 5000,
+        "scope": "account_grouping",
+        "scope_note": "歸戶：正卡+該正卡下所有附卡消費合併計算，回饋歸入正卡持卡人",
+        "period": "calendar_month"
+      },
+      "conditions_all": [
+        "plan_up_active",
+        "transaction_matches_designated_spending",
+        "transaction_is_bonus_eligible"
+      ]
+    }
+  ],
+  "headline_max_rate": {
+    "rate_bps": 450,
+    "rate_percent": 4.5,
+    "formula": "eligible_base_reward + eligible_UP_bonus",
+    "warning": "4.5% is not a single rule. Some transactions can qualify for the 3.5% UP bonus but not the 1% base reward."
+  },
+  "rounding": {
+    "scope": "per_transaction_per_reward_layer",
+    "method": "round_half_up_to_integer_point",
+    "minimum_after_rounding": 1,
+    "official_wording": "回饋計算採逐筆以實際刷卡請款金額乘以回饋率後計算四捨五入至整數回饋玉山e point，若四捨五入後未滿1點將不列入回饋。"
+  },
+  "plan_mechanics": {
+    "default_plan_on_card_issuance": "SIMPLE",
+    "bonus_period": "calendar_month",
+    "plan_used_for_month": "final_plan_on_last_calendar_day",
+    "plan_switch_channel": "esun_wallet_app",
+    "simple_custom_changes_per_month_max": 30,
+    "simple_custom_changes_note": "切換【簡單選】、【任意選】方案，以及變更【任意選】方案指定消費，每月切換上限30次；仍以該月(日曆月)最後一日最終之方案計算該月份加碼回饋",
+    "purchase_must_post_by": "next_month_day_10",
+    "bonus_posting": "from_next_month_day_17",
+    "posting_example": "消費日8/1~8/31且請款日8/1~9/10之交易，將於9/17起回饋",
+    "supplementary_cards_aggregated": true,
+    "up_valid_until": "end_of_current_month",
+    "auto_renew": true,
+    "cannot_switch_out_after_up_subscription_in_same_month": true,
+    "subscription": {
+      "cost_points_if_not_free": 149,
+      "charge_behavior": "system_checks_free_qualification_first_then_charges_only_if_unqualified; not a charge-then-refund flow",
+      "free_conditions_all": [
+        {
+          "metric": "previous_month_unicard_spend_twd",
+          "operator": ">=",
+          "value": 30000
+        },
+        {
+          "metric": "previous_month_average_esun_assets_twd",
+          "operator": ">=",
+          "value": 300000
+        }
+      ],
+      "renewal_check_timing": "monthly_on_day_1",
+      "renewal_behavior": "if_qualified_free_renew; if_not_qualified_charge_149_points; if_insufficient_points_revert_to_SIMPLE_plan"
+    }
+  },
+  "designated_spending": {
+    "mobile_payment": [
+      "玉山Wallet電子支付",
+      "LINE Pay",
+      "全支付",
+      "街口支付",
+      "悠遊付",
+      "全盈+PAY",
+      "iPASS MONEY",
+      "icash Pay",
+      "支付寶"
+    ],
+    "ecommerce": [
+      "momo購物網",
+      "蝦皮購物",
+      "淘寶網",
+      "Coupang酷澎"
+    ],
+    "domestic_department_store": [
+      "新光三越百貨",
+      "SKM Park Outlets高雄草衙",
+      "遠東SOGO",
+      "遠東Garden City(大巨蛋)",
+      "遠東百貨",
+      "Big City遠東巨城購物中心",
+      "漢神百貨",
+      "台中漢神洲際購物廣場",
+      "微風百貨",
+      "台北101",
+      "華泰名品城",
+      "三井OUTLET",
+      "誠品生活",
+      "誠品書店",
+      "誠品線上",
+      "秀泰生活",
+      "LaLaport",
+      "統一時代百貨台北店",
+      "DREAM PLAZA",
+      "昇恆昌",
+      "Global Mall環球購物中心"
+    ],
+    "daily_shopping": [
+      "萬家福",
+      "樂家康",
+      "屈臣氏",
+      "康是美",
+      "特力屋",
+      "HOLA",
+      "hoi好好生活",
+      "UNIQLO",
+      "NET",
+      "杏一藥局",
+      "卡多摩"
+    ],
+    "food": [
+      "Uber Eats",
+      "foodpanda",
+      "王品瘋Pay"
+    ],
+    "fuel_transport": [
+      "台灣中油(直營店)",
+      "台塑石油PAY",
+      "55688",
+      "台灣大車隊",
+      "機場接送",
+      "台鐵",
+      "高鐵",
+      "Uber"
+    ],
+    "air_travel": [
+      "中華航空",
+      "長榮航空",
+      "日本航空",
+      "台灣虎航",
+      "樂桃航空",
+      "酷航",
+      "Trip.com",
+      "Booking.com",
+      "Hotels.com",
+      "Expedia",
+      "KKday",
+      "Klook",
+      "雄獅旅遊",
+      "可樂旅遊",
+      "東南旅遊",
+      "Agoda",
+      "五福旅遊",
+      "加利利旅行社",
+      "找到了旅行社",
+      "喜鴻假期",
+      "鳳凰旅遊"
+    ],
+    "foreign_physical_countries": [
+      "日本", "韓國", "泰國", "越南", "新加坡", "馬來西亞", "菲律賓",
+      "中國", "香港", "澳門", "美國", "加拿大", "英國", "法國", "德國",
+      "義大利", "澳洲", "紐西蘭"
+    ],
+    "selected_merchants": [
+      "Apple直營店",
+      "小米台灣",
+      "全國電子",
+      "燦坤",
+      "拓元售票",
+      "威秀影城",
+      "國賓影城",
+      "新光影城",
+      "錢櫃KTV"
+    ],
+    "esg": [
+      "玉山Wallet愛心捐款-單筆捐款",
+      "玉山Wallet愛心捐款-定期定額",
+      "特斯拉"
+    ]
+  },
+  "payment_channel_rules": [
+    {
+      "rule_id": "MOBILE_PAYMENT_CATEGORY",
+      "applies_to_category": "mobile_payment",
+      "require": "designated_mobile_payment_bound_to_unicard",
+      "exclusions": [
+        "convenience_store_transactions",
+        "PX_Mart_transactions",
+        "PX_Mega_transactions",
+        "PX_ecommerce_transactions",
+        "taxes_and_fees",
+        "other_non_general_spend"
+      ]
+    },
+    {
+      "rule_id": "LINE_PAY_DESCRIPTOR",
+      "applies_to": "LINE Pay",
+      "statement_descriptor_contains_any": [
+        "連加",
+        "LINE PAY",
+        "LPEPI",
+        "連支"
+      ],
+      "exclude": [
+        "insurance_paid_via_LINE_Pay"
+      ]
+    },
+    {
+      "rule_id": "DIRECT_MERCHANT_CATEGORY_PAYMENT",
+      "applies_to_categories": [
+        "ecommerce",
+        "domestic_department_store",
+        "daily_shopping",
+        "food",
+        "fuel_transport",
+        "air_travel",
+        "foreign_physical_countries",
+        "selected_merchants",
+        "esg"
+      ],
+      "eligible_payment_methods": [
+        "physical_card",
+        "Apple Pay",
+        "Google Pay",
+        "Samsung Pay"
+      ],
+      "third_party_wallet_behavior": "reclassify_as_mobile_payment_if_wallet_is_designated; otherwise merchant-category bonus does not apply"
+    }
+  ],
+  "recognition_rules": [
+    {
+      "rule_id": "DESCRIPTOR_MUST_IDENTIFY_DESIGNATED_MERCHANT",
+      "condition": "statement_descriptor_must_contain_or_identify_designated_merchant"
+    },
+    {
+      "rule_id": "EMBEDDED_MERCHANT",
+      "condition": "merchant_inside_department_store_hotel_mall_station_foodcourt_is_ineligible_if_statement_descriptor_cannot_identify_merchant"
+    }
+  ],
+  "category_specific_rules": {
+    "daily_shopping": {
+      "domestic_only": true,
+      "channels": ["physical_store", "official_website", "official_app"],
+      "UNIQLO_NET_physical": "street_standalone_store_only"
+    },
+    "fuel_transport": {
+      "CPC": "direct-operated stations only; CPC Pay allowed",
+      "THSR_TRA": "official website/app/station counter/ticket machine only; excludes convenience-store payment, onboard food, gate tap/e-ticket auto top-up, package tickets",
+      "Uber": "domestic ride and TWD transaction only"
+    },
+    "air_travel": {
+      "airlines": "airline counter/official website/app; excludes travel-agency or OTA ticket purchase",
+      "Trip_Booking_Hotels_Expedia_Agoda": "must complete online payment with Unicard; pay-at-property excluded",
+      "Klook": "domestic transaction and TWD only",
+      "找到了旅行社": "installment transactions excluded"
+    },
+    "foreign_physical": {
+      "must_be_face_to_face": true,
+      "must_be_non_Taiwan_location": true,
+      "must_be_non_TWD": true,
+      "online_transactions_excluded": true,
+      "Guam_not_US_for_this_rule": true
+    },
+    "selected_merchants": {
+      "Apple": "Taiwan Apple direct stores and Apple online store; foreign Apple excluded",
+      "小米台灣": "official Taiwan website/Mi Home/specialty stores only; excludes marketplace official shops",
+      "影城": "onsite card purchase or cinema online booking only; reseller sales excluded"
+    }
+  },
+  "general_spend_exclusions": [
+    "physical_store_transactions_in_listed_European_countries",
+    "investment_related_transactions",
+    "specified_insurance_premiums",
+    "taxes",
+    "tuition",
+    "medical_expenses",
+    "government_fees",
+    "PX_Mart",
+    "PX_Mega",
+    "PXGo",
+    "7-ELEVEN",
+    "FamilyMart",
+    "Hi-Life",
+    "OK_Mart",
+    "NCCC_small_payment_merchants",
+    "merchant_installment_transactions",
+    "utility_and_telecom_autopay",
+    "payment_platform_fees",
+    "stored_value_topups",
+    "electronic_payment_topups",
+    "eTag_auto_topup",
+    "eTag_smart_parking",
+    "cash_advance",
+    "balance_transfer",
+    "revolving_interest",
+    "late_fees",
+    "annual_fees",
+    "service_fees",
+    "collection_fees",
+    "motor_vehicle_regulatory_fees",
+    "tobacco_and_legally_non_promotable_goods"
+  ],
+  "up_bonus_overrides_to_general_spend_exclusions": [
+    {
+      "type": "merchant_installment",
+      "bonus_eligible": true,
+      "base_1pct_eligible": false,
+      "bonus_calculation": "calculate once on total installment purchase amount"
+    },
+    {
+      "type": "designated_EU_EEA_UK_physical_transaction",
+      "countries": [
+        "英國", "奧地利", "比利時", "保加利亞", "克羅埃西亞", "賽普勒斯",
+        "捷克", "丹麥", "愛沙尼亞", "芬蘭", "法國", "德國", "希臘",
+        "匈牙利", "愛爾蘭", "義大利", "拉脫維亞", "立陶宛", "盧森堡",
+        "馬爾他", "荷蘭", "波蘭", "葡萄牙", "羅馬尼亞", "斯洛伐克",
+        "斯洛維尼亞", "西班牙", "瑞典"
+      ],
+      "bonus_eligible": true,
+      "base_1pct_eligible": false
+    }
+  ],
+  "evaluation_priority": [
+    "validate_effective_date",
+    "classify_payment_channel",
+    "normalize_merchant_or_country",
+    "apply_statement_descriptor_recognition",
+    "evaluate_UP_bonus_eligibility_and_bonus_exclusions",
+    "evaluate_base_general_spend_eligibility_separately",
+    "apply_monthly_bonus_cap",
+    "round_each_reward_layer_per_transaction",
+    "sum_layers"
+  ]
+}

@@ -1,0 +1,541 @@
+{
+  "schema_version": "0.2",
+  "card_id": "TAISHIN_RICHART",
+  "issuer": "Taishin Bank",
+  "program_name": "Richart 卡 7+1刷",
+  "snapshot_date": "2026-10-02",
+  "effective_period": {
+    "core_terms_start": "2026-07-01",
+    "core_terms_end": "2027-12-31",
+    "timezone": "Asia/Taipei",
+    "note": "Core switch-plan terms on the Richart card page state 2026-07-01 through 2027-12-31. Some individual promotion pages currently publish narrower end dates (e.g. fuel promotion to 2027-03-31); treat those as source-specific validity and revalidate before future-date optimization."
+  },
+  "source_provenance": [
+    {
+      "source_id": "taishin_richart_main",
+      "type": "official_bank_page",
+      "url": "https://mkp.taishinbank.com.tw/TsCms/marketing/expose/WM_20251216135624463/index.html",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "scheme rates",
+        "merchant lists",
+        "payment-method restrictions",
+        "daily scheme switching",
+        "rounding",
+        "installment treatment",
+        "statement-cycle bonus-spend limit",
+        "Level 1 / Level 2 qualification",
+        "Chill merchant rates"
+      ]
+    },
+    {
+      "source_id": "taishin_non_reward_items",
+      "type": "official_bank_page",
+      "url": "https://www.taishinbank.com.tw/TSB/personal/credit/intro/rights/notice/restricteditems/",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "general-spend exclusions",
+        "Richart-specific exceptions"
+      ]
+    },
+    {
+      "source_id": "taishin_richart_overview",
+      "type": "official_bank_page",
+      "url": "https://www.taishinbank.com.tw/TSB/personal/credit/intro/overview/cg047/?from=index",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "holiday definition",
+        "scheme summary cross-check"
+      ]
+    },
+    {
+      "source_id": "user_verified_faq_notes",
+      "type": "user_provided",
+      "retrieved_date": "2026-10-02",
+      "covers": [
+        "Chill scheme sunset confirmed end of 2026",
+        "point value 1 point = NT$1 confirmed",
+        "Level 2 effective timing confirmed",
+        "typhoon day-off excluded from holiday scheme confirmed"
+      ]
+    }
+  ],
+  "reward_currency": {
+    "name": "台新Point(信用卡)",
+    "point_value_twd": 1,
+    "redemption_note": "1點 = 新台幣1元，可100%折抵未出帳信用卡消費金額，須於結帳日前至Richart Life APP手動折抵",
+    "expiration": {
+      "years": 2,
+      "cleanup_rule": "Unused points older than two years are cleared on the last day of the month following the primary cardholder's birthday month."
+    }
+  },
+  "rounding": {
+    "scope": "per_transaction",
+    "method": "floor_to_integer_point",
+    "note": "與玉山Unicard的四捨五入不同，Richart為逐筆無條件捨去"
+  },
+  "householding": {
+    "primary_and_supplementary_cards": "aggregate_by_primary_cardholder_ID",
+    "reward_account": "primary_cardholder",
+    "scheme_setting_follows": "primary_cardholder_selected_scheme"
+  },
+  "base_reward": {
+    "rule_id": "RICHART_GENERAL_SPEND_0_3",
+    "rate_bps": 30,
+    "rate_percent": 0.3,
+    "cap": null,
+    "eligibility": "general_spend",
+    "rate_semantics": "standalone_total_rate"
+  },
+  "levels": {
+    "LEVEL_1": {
+      "description": "Richart cardholder without active Level 2 qualification",
+      "scheme_total_rate_default_bps": 130,
+      "scheme_total_rate_default_percent": 1.3,
+      "scheme_rates": {
+        "CHILL": {"total_rate_percent": 1.3},
+        "PAY": {"total_rate_percent": 1.3},
+        "DAILY": {"total_rate_percent": 1.3},
+        "BIG_PURCHASE": {"total_rate_percent": 1.3},
+        "DINING": {"total_rate_percent": 1.3},
+        "DIGITAL": {"total_rate_percent": 1.3},
+        "TRAVEL": {"total_rate_percent": 1.3},
+        "HOLIDAY": {"total_rate_percent": 1.3}
+      }
+    },
+    "LEVEL_2": {
+      "qualification": {
+        "standard": {
+          "condition": "Taishin TWD/Richart account autopay for Taishin credit-card bill is successfully set and remains active",
+          "application_cutoff": "must be successfully set at least 3 business days before statement closing date",
+          "effective": "next business day after the next statement closing",
+          "effective_example": "結帳日為每月12日，於7/7前完成設定 → 7/13起之消費適用Level 2回饋",
+          "verified": "confirmed_by_official_source_2026-10-02"
+        },
+        "new_card_exception": {
+          "applies_to_new_Richart_or_Family_Richart_card": true,
+          "level2_days_from_approval": 60,
+          "effective_period": {
+            "start": "2026-07-01",
+            "end": "2027-12-31"
+          }
+        }
+      },
+      "scheme_rates": {
+        "CHILL": {"total_rate_percent_range": [3.3, 10.0]},
+        "PAY": {"total_rate_percent_options": [3.8, 2.3]},
+        "DAILY": {"total_rate_percent": 3.3},
+        "BIG_PURCHASE": {"total_rate_percent": 3.3},
+        "DINING": {"total_rate_percent": 3.3},
+        "DIGITAL": {"total_rate_percent": 3.3},
+        "TRAVEL": {"total_rate_percent": 3.3},
+        "HOLIDAY": {"total_rate_percent": 2.0}
+      }
+    }
+  },
+  "scheme_selection": {
+    "default_scheme_after_card_approval": "DAILY",
+    "change_channel": "Richart Life APP",
+    "max_changes_per_calendar_day": 1,
+    "effective_scheme_for_transaction_day": "scheme recorded by Taishin at 23:59 GMT+8",
+    "retroactive_scope": "all transactions from 00:00 of that transaction date",
+    "bank_system_record_controls": true,
+    "merchant_transaction_date_note": "Transaction date is the date supplied by the merchant and can differ from the user's actual swipe time due to merchant operations or timezone."
+  },
+  "bonus_spend_limit": {
+    "scope": "statement_cycle",
+    "amount_formula_twd": "permanent_credit_limit + 300000",
+    "applies_to": "all scheme bonus-eligible spending",
+    "over_limit_behavior": {
+      "fallback": "general_spend",
+      "rate_percent": 0.3,
+      "only_if_general_spend_eligible": true
+    }
+  },
+  "installment_rules": {
+    "merchant_installment": {
+      "reward_eligible": false
+    },
+    "single_purchase_zero_interest_installment": {
+      "reward_eligible": false
+    },
+    "single_purchase_interest_bearing_installment": {
+      "reward_eligible": true,
+      "calculation": "calculate once on total transaction amount; installment principal does not earn again"
+    }
+  },
+  "payment_method_rules": {
+    "generally_bonus_eligible": [
+      "PHYSICAL_CARD",
+      "ONLINE_CARD_NUMBER",
+      "TAISHIN_PAY",
+      "APPLE_PAY",
+      "GOOGLE_WALLET",
+      "SAMSUNG_PAY"
+    ],
+    "LINE_PAY": {
+      "bonus_eligible_schemes": ["CHILL", "PAY", "HOLIDAY"],
+      "not_bonus_eligible_schemes": ["DAILY", "BIG_PURCHASE", "DINING", "DIGITAL", "TRAVEL"]
+    },
+    "FAMILY_PAY_PLUS": {
+      "bonus_eligible_schemes": ["PAY", "HOLIDAY"],
+      "not_bonus_eligible_schemes": ["CHILL", "DAILY", "BIG_PURCHASE", "DINING", "DIGITAL", "TRAVEL"]
+    },
+    "generally_not_bonus_eligible": [
+      "JKOPAY",
+      "TAIWAN_PAY_EXTERNAL",
+      "MY_FAMIPAY",
+      "PX_PAY_PLUS",
+      "OPEN_WALLET",
+      "CPC_PAY"
+    ],
+    "note": "Taishin Pay may itself use TWQR/Taiwan Pay rails at supported merchants; model this as TAISHIN_PAY when the card transaction is initiated inside Taishin Pay, not as external TAIWAN_PAY."
+  },
+  "schemes": {
+    "CHILL": {
+      "display_name": "Chill刷",
+      "validity": {
+        "start": "2026-07-08",
+        "end": "2026-12-31",
+        "note": "確認將於2026年底重新設計或下架，效期明顯短於核心條款(2027-12-31)"
+      },
+      "level2_rate_rules": [
+        {
+          "total_rate_percent": 10.0,
+          "groups": {
+            "歡聚微醺": [
+              "詹記麻辣火鍋", "萬客什鍋", "海底撈", "屋馬燒肉", "茶六燒肉堂",
+              "新村站著吃", "燒肉政宗", "碳佐麻里", "雞湯大叔", "gonna共樂遊",
+              "BRUN 不然", "CAFE ACME", "The Antipodean", "貳樓", "樂子 the Diner",
+              "Fake Sober", "Draft Land", "臺虎精釀(含啜飲室)", "ABV系列",
+              "Bar TCRC", "Bar Home", "Phowa", "MOONROCK",
+              "台灣代駕", "Motodomo 愛車管家"
+            ],
+            "日常續命": [
+              "50嵐", "得正", "五桐號", "龜記", "UG TEA", "叮哥茶飲",
+              "CAFE!N", "%Arabica", "COMPOSE COFFEE"
+            ]
+          }
+        },
+        {
+          "total_rate_percent": 5.0,
+          "groups": {
+            "約會犒賞": ["饗饗 INPARADISE", "NAGOMI"],
+            "應援追星": ["WEVERSE", "K-MONSTAR", "微樂客", "五大唱片", "仙女樹", "FANME", "NOL"],
+            "熬夜追更": ["巴哈姆特", "BOOK WALKER", "Animate", "樂天KOBO", "Readmoo讀墨", "Netflix", "Disney+", "愛爾達"],
+            "數位外掛": ["Pinkoi"],
+            "營養補給": ["好好生醫", "POPCARE好在乎", "營養師輕食", "VITABOX", "MYPROTEIN", "UrMart優馬選品"],
+            "體態養成": ["Anytime Fitness", "健身工廠", "World Gym", "超核心 Hypercore", "KX PILATES", "虎鐵健身 X 器械皮拉提斯", "17FIT"],
+            "運動品牌": ["Adidas", "New Balance", "PUMA", "Onitsuka Tiger", "Nike", "HOKA", "Salomon", "lululemon"]
+          }
+        },
+        {
+          "total_rate_percent": 3.3,
+          "groups": {
+            "數位外掛": [
+              "Apple 直營(含官網)", "Studio A(含Straight A)", "DJI",
+              "Insta360", "GoPro", "蝦皮", "淘寶", "酷澎", "Uber Eats"
+            ]
+          }
+        }
+      ],
+      "payment_methods": ["PHYSICAL_CARD", "ONLINE_CARD_NUMBER", "TAISHIN_PAY", "APPLE_PAY", "GOOGLE_WALLET", "SAMSUNG_PAY", "LINE_PAY"]
+    },
+    "PAY": {
+      "display_name": "Pay著刷",
+      "level2_rate_rules": [
+        {
+          "total_rate_percent": 3.8,
+          "payment_methods": ["TAISHIN_PAY", "TAISHIN_PAY_PLUS"]
+        },
+        {
+          "total_rate_percent": 2.3,
+          "payment_methods": ["LINE_PAY", "FAMILY_PAY_PLUS"]
+        }
+      ],
+      "merchant_examples_for_taishin_pay": [
+        "全家", "7-11", "新光三越", "Richart Mart", "康是美", "IKEA", "NET",
+        "神腦", "燦坤", "全國電子", "麥當勞", "美廉社", "大樹藥局"
+      ],
+      "note": "Merchant availability depends on Taishin Pay / Taishin Pay+ acceptance. Examples are not an exhaustive whitelist."
+    },
+    "DAILY": {
+      "display_name": "天天刷",
+      "level2_total_rate_percent": 3.3,
+      "groups": {
+        "日常採買": [
+          "全家", "7-11", "萬家福", "樂家康", "大買家", "唐吉訶德", "LOPIA", "智生活"
+        ],
+        "通勤交通": [
+          "臺鐵", "高鐵", "台灣大車隊", "LINEGO", "Yoxi", "Uber", "台灣Bolt"
+        ],
+        "加油充電": [
+          "中油直營", "全國加油", "全國特急電", "源點EVOASIS", "華城電能EVALUE", "USPACE", "Autopass(車麻吉)"
+        ],
+        "藥妝藥局": [
+          "寶雅", "康是美", "屈臣氏", "杏一醫療", "大樹藥局", "丁丁藥局", "佑全保健藥妝", "健康人生藥局"
+        ]
+      },
+      "special_payment_constraints": {
+        "全家": ["TAISHIN_PAY"],
+        "7-11": ["TAISHIN_PAY"]
+      },
+      "category_history_note": "加油充電類別於2026年由「好饗刷」改列至「天天刷」，為官方規則變更（非資料來源矛盾），並新增USPACE、Autopass(車麻吉)兩通路"
+    },
+    "BIG_PURCHASE": {
+      "display_name": "大筆刷",
+      "level2_total_rate_percent": 3.3,
+      "groups": {
+        "指定百貨": [
+          "新光三越", "skm pay", "遠東百貨", "遠東SOGO", "漢神巨蛋", "漢神百貨",
+          "漢神洲際", "微風", "台北101", "遠東巨城", "廣三SOGO", "南紡購物中心",
+          "誠品生活", "誠品生活線上", "京站", "三創生活", "夢時代",
+          "統一時代", "DREAM PLAZA", "中友百貨",
+          "Mitsui Shopping Park LaLaport南港", "Mitsui Shopping Park LaLaport台中"
+        ],
+        "指定Outlet": [
+          "MITSUI OUTLET PARK林口", "MITSUI OUTLET PARK台中港", "MITSUI OUTLET PARK台南",
+          "華泰名品城", "SKM Park Outlets"
+        ],
+        "居家裝修": ["IKEA", "特力屋", "HOLA", "宜得利", "瑪黑家居"],
+        "時尚品味": ["UNIQLO", "GU", "ZARA", "NET", "lululemon"]
+      },
+      "category_dispute_note": "時尚品味(UNIQLO/GU/ZARA/NET/lululemon)的方案歸屬，第三方資料出現分歧（部分文章稱屬「數趣刷」），本檔案依官方頁面擷取結果維持「大筆刷」，建議每季複查官網確認",
+      "store_in_store_rule": "百貨店中店不給加碼回饋：若品牌開在百貨內，簽單顯示為百貨名稱而非品牌名稱，不符合加碼資格"
+    },
+    "DINING": {
+      "display_name": "好饗刷",
+      "level2_total_rate_percent": 3.3,
+      "groups": {
+        "全臺餐飲": ["ALL_TAIWAN_RESTAURANTS", "王品瘋Pay"],
+        "外送平台": ["Uber Eats", "Foodpanda"],
+        "購票娛樂": ["拓元售票", "KKTIX", "年代售票", "寬宏售票", "OPENTIX兩廳院文化生活", "FunNow"],
+        "指定KTV": ["錢櫃", "好樂迪", "ONCOR", "sing!go", "享溫馨"],
+        "指定飯店集團": [
+          "晶華國際酒店集團", "雲朗觀光", "台灣萬豪國際集團旗下飯店", "煙波國際觀光集團",
+          "老爺酒店集團", "福華集團", "漢來飯店事業群", "台北君悅酒店",
+          "高雄洲際酒店", "臺中勤美洲際酒店", "礁溪寒沐酒店"
+        ]
+      },
+      "exclusions": [
+        "餐券",
+        "住宿券",
+        "其他票券",
+        "代訂服務",
+        "相關精品商店"
+      ],
+      "hotel_match_requires_official_detailed_list": true,
+      "mcc_requirement": "需符合收單機構登記之餐廳MCC代碼(5811/5812/5813/5814)，非餐廳類別不給加碼",
+      "theme_park_note": "查證到2025年版本好饗刷曾含指定樂園(義大遊樂世界/麗寶樂園/六福村/九族文化村/劍湖山世界/X-Park/國立海洋生物博物館/遠雄海洋公園/小人國)，但未確認2026下半年版本是否延續，暫不納入本檔案正式清單，待確認後補充"
+    },
+    "DIGITAL": {
+      "display_name": "數趣刷",
+      "level2_total_rate_percent": 3.3,
+      "groups": {
+        "網購平台": [
+          "蝦皮", "momo", "酷澎(Coupang)", "PChome", "淘寶", "Amazon", "東森",
+          "博客來", "Richart Mart", "PayEasy", "iHerb", "SHEIN", "Farfetch", "Olive Young"
+        ],
+        "線上課程": ["知識衛星", "Amazing Talker", "Tutor ABC", "Hahow", "PressPlay"],
+        "遊戲影音": ["MyCard", "遊戲橘子", "Steam", "PlayStation", "Nintendo", "Netflix", "Disney+"],
+        "AI服務": ["ChatGPT", "Notion", "Canva", "Perplexity", "Claude"]
+      }
+    },
+    "TRAVEL": {
+      "display_name": "玩旅刷",
+      "level2_total_rate_percent": 3.3,
+      "groups": {
+        "海外消費": ["ALL_FOREIGN_PURCHASES_INCLUDING_ONLINE_AND_EUROPE"],
+        "航空公司": [
+          "中華航空", "長榮航空", "星宇航空", "台灣虎航", "國泰航空", "華信航空",
+          "立榮航空", "樂桃航空", "阿聯酋航空", "亞洲航空", "酷航", "捷星航空",
+          "新加坡航空", "日本航空", "越捷航空"
+        ],
+        "海外交通網路": ["Uber", "Grab", "SUICA", "ICOCA", "PASMO", "WOWPASS", "AIRSIM"],
+        "訂房平台": ["Klook", "KKday", "Agoda", "Booking.com", "Trip.com", "Airbnb", "Hotels.com", "Expedia"],
+        "旅行社": [
+          "雄獅旅遊", "易遊網", "東南旅遊", "可樂旅遊", "長汎假期", "五福旅遊",
+          "喜鴻假期", "易飛旅遊", "燦星旅遊", "加利利旅行社", "鳳凰國際旅行社",
+          "山富旅遊", "行健旅遊"
+        ]
+      },
+      "general_spend_exclusion_override": {
+        "partial_europe_physical_store_transactions": "eligible under TRAVEL when scheme conditions are met"
+      }
+    },
+    "HOLIDAY": {
+      "display_name": "假日刷",
+      "level2_total_rate_percent": 2.0,
+      "scope": "DOMESTIC_SPENDING_ON_QUALIFYING_HOLIDAY",
+      "payment_methods": [
+        "PHYSICAL_CARD", "ONLINE_CARD_NUMBER", "TAISHIN_PAY", "APPLE_PAY",
+        "GOOGLE_WALLET", "SAMSUNG_PAY", "LINE_PAY", "FAMILY_PAY_PLUS"
+      ],
+      "holiday_definition": {
+        "source": "Executive Yuan Directorate-General of Personnel Administration announced national holidays",
+        "exclude": ["typhoon_disaster_day_off"],
+        "verified": "confirmed_by_user_2026-10-02"
+      },
+      "includes_insurance": true,
+      "important_exclusion_rule": "Items that are otherwise non-reward general spending remain non-reward, e.g. convenience stores and taxes."
+    }
+  },
+  "insurance_program": {
+    "validity": {
+      "start": "2026-07-01",
+      "end": "2027-12-31"
+    },
+    "requires_scheme_switch": false,
+    "registration_required": false,
+    "total_rate_percent": 1.3,
+    "included_base_rate_percent": 0.3,
+    "statement_cycle_bonus_spend_limit_shared_with_switch_schemes": true,
+    "eligible_payment_methods": [
+      "PHYSICAL_CARD", "TAISHIN_PAY", "APPLE_PAY", "GOOGLE_WALLET", "SAMSUNG_PAY"
+    ],
+    "ineligible_payment_methods": [
+      "LINE_PAY", "JKOPAY", "TAIWAN_PAY_EXTERNAL", "MY_FAMIPAY", "PX_PAY_PLUS",
+      "FAMILY_PAY_PLUS", "OPEN_WALLET"
+    ],
+    "excluded_insurance": [
+      "foreign_insurance",
+      "single_premium",
+      "investment_linked_insurance",
+      "flexible_premium",
+      "zero_interest_installment",
+      "non_Taiwan_insurer",
+      "National_Health_Insurance_fee"
+    ]
+  },
+  "general_spend_exclusions": [
+    "YouTube",
+    "Spotify",
+    "TikTok",
+    "Apple_media_services_descriptor_APPLE.COM/BILL_or_APPLE_COM_BILL",
+    "Google_products_or_services_descriptor_contains_Google",
+    "specified_European_physical_store_transactions",
+    "offshore_investment_platforms",
+    "gambling",
+    "merchant_installment",
+    "single_purchase_zero_interest_installment",
+    "stored_value_auto_topup",
+    "Samsung_Pay_EasyCard_topup",
+    "PX_Mega",
+    "PX_Mart",
+    "7-ELEVEN",
+    "FamilyMart",
+    "Hi-Life",
+    "OK_Mart",
+    "utility_autopay",
+    "telecom_autopay",
+    "eTag_auto_topup",
+    "tuition",
+    "specified_insurance",
+    "Taipei_Medical_University_Hospital",
+    "municipal_roadside_parking_fee",
+    "payment_platform_transactions",
+    "NCCC_small_payment_merchants",
+    "government_fees",
+    "fines",
+    "cash_advance",
+    "cash_advance_fees",
+    "balance_transfer",
+    "taxes",
+    "road_maintenance_fee",
+    "late_fees",
+    "revolving_interest",
+    "fund_transactions",
+    "annual_fee",
+    "credit_card_service_fees"
+  ],
+  "general_spend_exclusion_overrides": [
+    {
+      "type": "specified_European_physical_store_transactions",
+      "card": "TAISHIN_RICHART",
+      "behavior": "may earn under qualifying Richart TRAVEL scheme; do not automatically grant 0.3% general-spend reward"
+    },
+    {
+      "type": "7-ELEVEN_or_FamilyMart",
+      "conditions": {
+        "payment_method": "TAISHIN_PAY",
+        "scheme_in": ["PAY", "DAILY"]
+      },
+      "behavior": "scheme reward applies despite general-spend exclusion"
+    }
+  ],
+  "merchant_recognition": {
+    "primary_basis": [
+      "transaction_description",
+      "acquirer_registered_MCC_or_industry_category"
+    ],
+    "registered_category_controls_over_actual_business": true,
+    "manual_review_possible_if_clearing_data_prevents_match": true,
+    "manual_review_not_retroactive_as_general_policy": true
+  },
+  "current_extra_promotions_not_merged_into_core_scheme": [
+    {
+      "name": "LINE Pay領券最高3.8%",
+      "period": {
+        "start": "2026-10-01",
+        "end": "2026-12-31"
+      },
+      "reason_separate": "Requires coupon / separate campaign state; not part of core 7+1 scheme rules."
+    },
+    {
+      "name": "Mastercard海外達檻最高13.3%",
+      "period": {
+        "start": "2026-10-01",
+        "end": "2026-12-31"
+      },
+      "reason_separate": "Card-network promotion with additional qualification conditions."
+    }
+  ],
+  "source_conflicts": [
+    {
+      "conflict_id": "FUEL_CATEGORY_OFFICIAL_CHANGE",
+      "summary_text": "Rights overview historically placed 加油充電 under 好饗刷.",
+      "detailed_text": "2026 official update moved 加油充電 merchants to 天天刷 and added USPACE / Autopass(車麻吉).",
+      "resolution": "CONFIRMED_OFFICIAL_RULE_CHANGE_NOT_SOURCE_CONTRADICTION; USE_DAILY_SCHEME",
+      "confidence": "high",
+      "verified": "confirmed_by_search_2026-10-02"
+    },
+    {
+      "conflict_id": "FASHION_BRAND_SCHEME_DISPUTE",
+      "summary_text": "Some third-party articles place UNIQLO/GU/ZARA/NET/lululemon under 數趣刷.",
+      "detailed_text": "Officially-sourced detailed list places these under 大筆刷時尚品味.",
+      "resolution": "KEEP_BIG_PURCHASE_PENDING_QUARTERLY_RECHECK",
+      "confidence": "medium",
+      "user_decision": "維持大筆刷，之後定期複查官網"
+    },
+    {
+      "conflict_id": "DINING_THEME_PARK_LIST_UNCONFIRMED",
+      "summary_text": "2025 好饗刷 included named theme parks (義大/麗寶/六福村/九族/劍湖山/X-Park/海生館/遠雄海洋公園/小人國).",
+      "detailed_text": "No official 2026 H2 source confirms this list is still active.",
+      "resolution": "DO_NOT_ADD_UNTIL_2026_H2_OFFICIAL_SOURCE_CONFIRMED",
+      "confidence": "medium",
+      "user_decision": "先不補進資料檔，待確認後處理"
+    },
+    {
+      "conflict_id": "SCHEME_SUBPAGE_END_DATES",
+      "summary_text": "Core Richart switch-plan terms state 2026-07-01 through 2027-12-31.",
+      "detailed_text": "Some currently indexed individual offer pages (e.g. fuel promotion) show end date 2027-03-31.",
+      "resolution": "VALID_FOR_CURRENT_DATE_2026-10-02; REQUIRE_REVALIDATION_FOR_FUTURE_DATE_AFTER_NARROWER_SOURCE_END",
+      "confidence": "medium"
+    }
+  ],
+  "evaluation_priority": [
+    "validate transaction date against rule/source validity",
+    "determine Level 1 vs Level 2",
+    "determine final scheme recorded at 23:59 for transaction date",
+    "normalize payment method",
+    "normalize merchant / MCC / geography",
+    "check installment eligibility",
+    "check scheme-specific payment-method restrictions",
+    "match scheme merchant/category rule",
+    "apply general-spend exclusion overrides",
+    "apply statement-cycle bonus-spend limit",
+    "if no scheme match, evaluate 0.3% general-spend eligibility",
+    "floor points per transaction",
+    "aggregate to primary cardholder"
+  ]
+}

@@ -575,6 +575,134 @@ function isCubePlanActive(plan) {
   return true;
 }
 
+// ============ Unicard / Richart 權益資料(非同步載入) ============
+// 與 CUBE 同等級的「商家搜尋 fallback」:只顯示該店家適用哪個方案、方案最高回饋%,
+// 不做 Level1/2、分期、支付工具限制等完整試算判斷(那些留在 JSON 裡供日後試算工具使用)
+
+let unicardBenefitsData = null;
+let richartBenefitsData = null;
+
+async function loadUnicardBenefits() {
+  try {
+    const res = await fetch("data/unicard-benefits.json");
+    unicardBenefitsData = await res.json();
+  } catch (err) {
+    console.warn("Unicard 權益資料載入失敗", err);
+    unicardBenefitsData = null;
+  }
+}
+
+async function loadRichartBenefits() {
+  try {
+    const res = await fetch("data/richart-benefits.json");
+    richartBenefitsData = await res.json();
+  } catch (err) {
+    console.warn("Richart 權益資料載入失敗", err);
+    richartBenefitsData = null;
+  }
+}
+
+// 把 unicard-benefits.json 的 designated_spending 扁平化成 [{merchantName, category}]
+// 快取在模組變數,避免每次搜尋都重新展開
+let _unicardMerchantIndex = null;
+// unicard/richart JSON 用 ISO 格式(YYYY-MM-DD),getDaysUntilExpiry/expiryTagHtml 吃 "YYYY/M/D"
+function isoToSlashDate(isoStr) {
+  if (!isoStr) return null;
+  const [y, m, d] = isoStr.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return `${y}/${m}/${d}`;
+}
+
+function getUnicardMerchantIndex() {
+  if (_unicardMerchantIndex) return _unicardMerchantIndex;
+  if (!unicardBenefitsData) return [];
+  const list = [];
+  const spending = unicardBenefitsData.designated_spending || {};
+  Object.keys(spending).forEach(category => {
+    spending[category].forEach(name => list.push({ merchantName: name, category }));
+  });
+  _unicardMerchantIndex = list;
+  return list;
+}
+
+// 搜尋 Unicard 百大指定消費商家,回傳 [{merchantName, category, rate}]
+// rate 固定為 UP選加碼率(3.5%),因為 index.html 只做「fallback 顯示」不做完整試算
+function findUnicardBenefitsByStore(query) {
+  if (!unicardBenefitsData || !query) return [];
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const bonusLayer = (unicardBenefitsData.reward_layers || []).find(l => l.layer === "bonus");
+  const rate = bonusLayer ? bonusLayer.rate_percent : null;
+  return getUnicardMerchantIndex()
+    .filter(m => m.merchantName.toLowerCase().includes(q))
+    .map(m => ({ merchantName: m.merchantName, category: m.category, rate }));
+}
+
+function findUnicardBenefitsForExactStore(storeName) {
+  if (!unicardBenefitsData || !storeName) return [];
+  const key = storeName.toLowerCase();
+  const bonusLayer = (unicardBenefitsData.reward_layers || []).find(l => l.layer === "bonus");
+  const rate = bonusLayer ? bonusLayer.rate_percent : null;
+  return getUnicardMerchantIndex()
+    .filter(m => {
+      const mname = m.merchantName.toLowerCase();
+      return mname.includes(key) || key.includes(mname);
+    })
+    .map(m => ({ merchantName: m.merchantName, category: m.category, rate }));
+}
+
+// 把 richart-benefits.json 的 schemes.*.groups 扁平化成 [{merchantName, schemeKey, schemeName, groupName}]
+let _richartMerchantIndex = null;
+function getRichartMerchantIndex() {
+  if (_richartMerchantIndex) return _richartMerchantIndex;
+  if (!richartBenefitsData) return [];
+  const list = [];
+  const schemes = richartBenefitsData.schemes || {};
+  Object.keys(schemes).forEach(schemeKey => {
+    const scheme = schemes[schemeKey];
+    const groups = scheme.groups || {};
+    Object.keys(groups).forEach(groupName => {
+      groups[groupName].forEach(name => {
+        list.push({ merchantName: name, schemeKey, schemeName: scheme.display_name, groupName });
+      });
+    });
+  });
+  _richartMerchantIndex = list;
+  return list;
+}
+
+// 取得某個方案的 Level2 回饋率(顯示用的「最高回饋%」)
+function getRichartSchemeRate(schemeKey) {
+  const level2 = (richartBenefitsData.levels || {}).LEVEL_2 || {};
+  const rates = level2.scheme_rates || {};
+  const r = rates[schemeKey];
+  if (!r) return null;
+  if (typeof r.total_rate_percent === "number") return r.total_rate_percent;
+  if (Array.isArray(r.total_rate_percent_range)) return Math.max(...r.total_rate_percent_range);
+  if (Array.isArray(r.total_rate_percent_options)) return Math.max(...r.total_rate_percent_options);
+  return null;
+}
+
+function findRichartBenefitsByStore(query) {
+  if (!richartBenefitsData || !query) return [];
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return getRichartMerchantIndex()
+    .filter(m => m.merchantName.toLowerCase().includes(q))
+    .map(m => ({ ...m, rate: getRichartSchemeRate(m.schemeKey) }));
+}
+
+function findRichartBenefitsForExactStore(storeName) {
+  if (!richartBenefitsData || !storeName) return [];
+  const key = storeName.toLowerCase();
+  return getRichartMerchantIndex()
+    .filter(m => {
+      const mname = m.merchantName.toLowerCase();
+      return mname.includes(key) || key.includes(mname);
+    })
+    .map(m => ({ ...m, rate: getRichartSchemeRate(m.schemeKey) }));
+}
+
 // ============ 到期日共用工具 ============
 
 // 吃 "YYYY/MM/DD" 或 "YYYY/M/D" 字串,回傳距今天數(負數=已過期;無法解析回 null)
@@ -775,7 +903,7 @@ const cards = [
 // ============ 方案到期資料 ============
 
 const rewardExpiry = [
-  { cardName: "CUBE 卡", planName: "玩數位/樂饗購/趣旅行/集精選/慶生月", expiryDate: "2026/6/30" },
+  { cardName: "CUBE 卡", planName: "秋日遊", expiryDate: "2026/11/30" },
   { cardName: "Richart 卡", planName: "7大方案（好饗刷/天天刷等）", expiryDate: "2026/6/30" },
   { cardName: "街口聯名卡", planName: "3.5%精選通路", expiryDate: "2026/12/31" },
   { cardName: "Unicard", planName: "百大指定消費加碼", expiryDate: "2026/6/30" },
@@ -789,7 +917,8 @@ const recommendations = [
   {
     store: "全聯",
     options: [
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "不可用 Line Pay" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "PX Pay 綁卡", cubePlan: "集精選", note: "限 PX Pay 綁卡，不含大全聯" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "全支付綁卡", cubePlan: "全支付", note: "限全支付綁定 CUBE 卡刷卡，含大全聯" },
       { card: "Unicard", bank: "玉山銀行", rate: 1, type: "e point", pay: "直刷 / Apple Pay", note: "全聯不列入百大指定消費，僅一般消費" },
       { card: "街口聯名卡", bank: "台新銀行", rate: 1, type: "街口幣", pay: "直刷 / Apple Pay / Line Pay / 街口", note: "一般消費 1% 無上限" },
     ]
@@ -966,7 +1095,7 @@ const recommendations = [
     options: [
       { card: "Richart 卡", bank: "台新銀行", rate: 3.3, type: "台新Point", pay: "直刷 / Apple Pay", richartPlan: "天天刷", note: "天天刷（超商量販）" },
       { card: "Unicard", bank: "玉山銀行", rate: 4.5, type: "e point", pay: "直刷 / Apple Pay", note: "百大指定消費（生活採買）4.5%（基本 1% + 加碼 3.5%），簡單選" },
-      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "量販指定消費" },
+      { card: "CUBE 卡", bank: "國泰世華", rate: 2, type: "小樹點", pay: "直刷 / Apple Pay", cubePlan: "集精選", note: "已改名為萬家福，量販指定消費" },
     ]
   },
   {
@@ -1662,7 +1791,27 @@ function onSearchInput() {
     if (seenLabels.has(lower)) return;
     // 例如「王品瘋Pay - 陶板屋」因包含「陶板屋」(王品 alias)應被過濾掉
     if (isCubeMerchantCoveredByRec(c.merchantName)) return;
-    items.push({ label: c.merchantName, value: c.merchantName, fromCubeOnly: true });
+    items.push({ label: c.merchantName, value: c.merchantName, fromCubeOnly: true, source: "cube" });
+    seenLabels.add(lower);
+  });
+
+  // (5) Unicard fallback — 百大指定消費商家,邏輯同 CUBE fallback
+  const unicardMatches = findUnicardBenefitsByStore(query);
+  unicardMatches.forEach(u => {
+    const lower = u.merchantName.toLowerCase();
+    if (seenLabels.has(lower)) return;
+    if (isCubeMerchantCoveredByRec(u.merchantName)) return;
+    items.push({ label: u.merchantName, value: u.merchantName, fromCubeOnly: true, source: "unicard" });
+    seenLabels.add(lower);
+  });
+
+  // (6) Richart fallback — 7+1刷方案商家,邏輯同 CUBE fallback
+  const richartMatches = findRichartBenefitsByStore(query);
+  richartMatches.forEach(r => {
+    const lower = r.merchantName.toLowerCase();
+    if (seenLabels.has(lower)) return;
+    if (isCubeMerchantCoveredByRec(r.merchantName)) return;
+    items.push({ label: r.merchantName, value: r.merchantName, fromCubeOnly: true, source: "richart" });
     seenLabels.add(lower);
   });
 
@@ -1672,10 +1821,11 @@ function onSearchInput() {
   }
 
   const escape = s => s.replace(/'/g, "\\'");
+  const badgeLabel = { cube: "僅 CUBE 權益查詢", unicard: "僅 Unicard 權益查詢", richart: "僅 Richart 權益查詢" };
   dropdown.innerHTML = items.map(it => {
-    const badge = it.fromCubeOnly ? `<span class="search-option-cube-badge">僅 CUBE 權益查詢</span>` : "";
-    const handler = it.fromCubeOnly ? "pickFromCubeSearch" : "pickFromSearch";
-    return `<div class="search-option" onclick="${handler}('${escape(it.value)}')">${it.label}${badge}</div>`;
+    const badge = it.fromCubeOnly ? `<span class="search-option-cube-badge">${badgeLabel[it.source] || "僅權益查詢"}</span>` : "";
+    const handler = it.fromCubeOnly ? `pickFromOnlySearch('${it.source}',` : "pickFromSearch(";
+    return `<div class="search-option" onclick="${handler}'${escape(it.value)}')">${it.label}${badge}</div>`;
   }).join("");
   dropdown.classList.remove("hidden");
 }
@@ -1689,14 +1839,19 @@ function pickFromSearch(storeName) {
   showRecommendationFor(storeName);
 }
 
-// 選到的是「僅 CUBE 權益查詢」結果(既有 recommendations 沒有的店家)
-function pickFromCubeSearch(storeName) {
+// 選到的是「僅 X 權益查詢」結果(既有 recommendations 沒有的店家)
+// source: "cube" | "unicard" | "richart"
+let currentOnlySource = "cube";
+function pickFromOnlySearch(source, storeName) {
   document.getElementById("store-search").value = storeName;
   document.getElementById("search-dropdown").classList.add("hidden");
   document.querySelectorAll(".quick-btn").forEach(b => b.classList.remove("selected"));
   currentStore = storeName;
+  currentOnlySource = source;
   recordStoreUsage(storeName);
-  showCubeOnlyRecommendation(storeName);
+  if (source === "unicard") showUnicardOnlyRecommendation(storeName);
+  else if (source === "richart") showRichartOnlyRecommendation(storeName);
+  else showCubeOnlyRecommendation(storeName);
 }
 
 // 顯示純 CUBE 權益結果(沒有 recommendations 資料時)
@@ -1745,12 +1900,102 @@ function showCubeOnlyRecommendation(storeName) {
   listEl.classList.remove("hidden");
 }
 
+// 顯示純 Unicard 權益結果(百大指定消費商家,既有 recommendations 沒有的店家)
+// 只顯示 UP選加碼率,不做 Level/分期/支付工具等完整試算判斷(詳見 data/unicard-benefits.json)
+function showUnicardOnlyRecommendation(storeName) {
+  const listEl = document.getElementById("result-list");
+  const matches = findUnicardBenefitsForExactStore(storeName);
+  if (matches.length === 0) {
+    listEl.innerHTML = `<div class="cube-extra-empty">找不到「${storeName}」的權益資料(或目前無適用方案)。</div>`;
+    listEl.classList.remove("hidden");
+    return;
+  }
+  const amountStr = document.getElementById("amount-input").value;
+  const amount = amountStr ? parseInt(amountStr) : 0;
+  const expiryTag = expiryTagHtml(isoToSlashDate(unicardBenefitsData?.effective_period?.end));
+
+  let html = `<div class="result-item cube-only">
+    <span class="result-rank">Unicard 權益</span>
+    <div class="result-card-name">${storeName}</div>
+    <div class="result-bank">玉山銀行 Unicard</div>
+    <div class="cube-extra-section" style="margin-top:10px;">
+      <div class="cube-extra-title">此店家屬於 UP選百大指定消費（${matches[0].category}）</div>`;
+  matches.forEach(m => {
+    const cashback = amount > 0 && m.rate !== null ? Math.floor(amount * m.rate / 100) : null;
+    html += `<div class="cube-extra-item">
+      <div>
+        <span class="plan-name">UP選加碼</span>
+        ${expiryTag}
+        <div class="plan-note">需訂閱/符合資格啟用 UP選方案；另有 1% 基礎回饋需電子帳單＋自動扣繳</div>
+      </div>
+      <span class="plan-rate">${m.rate !== null ? m.rate + '%' : '—'}${cashback !== null ? ` / $${cashback}` : ''}</span>
+    </div>`;
+  });
+  html += `</div>
+    <div class="result-note">加碼每月上限 5,000 點（歸戶計算），須於次月10日前請款才列入當月方案</div>
+  </div>`;
+  listEl.innerHTML = html;
+  listEl.classList.remove("hidden");
+}
+
+// 顯示純 Richart 權益結果(7+1刷方案商家,既有 recommendations 沒有的店家)
+// 只顯示 Level2 回饋率,不做 Level1/2 判斷/分期/支付工具限制等完整試算(詳見 data/richart-benefits.json)
+function showRichartOnlyRecommendation(storeName) {
+  const listEl = document.getElementById("result-list");
+  const matches = findRichartBenefitsForExactStore(storeName);
+  if (matches.length === 0) {
+    listEl.innerHTML = `<div class="cube-extra-empty">找不到「${storeName}」的權益資料(或目前無適用方案)。</div>`;
+    listEl.classList.remove("hidden");
+    return;
+  }
+  const amountStr = document.getElementById("amount-input").value;
+  const amount = amountStr ? parseInt(amountStr) : 0;
+
+  // 同一方案只保留一筆(去重),依回饋率排序(高到低)
+  const bestByScheme = new Map();
+  matches.forEach(m => {
+    const prev = bestByScheme.get(m.schemeKey);
+    if (!prev || (m.rate || 0) > (prev.rate || 0)) bestByScheme.set(m.schemeKey, m);
+  });
+  const uniqueMatches = [...bestByScheme.values()].sort((a, b) => (b.rate || 0) - (a.rate || 0));
+
+  let html = `<div class="result-item cube-only">
+    <span class="result-rank">Richart 權益</span>
+    <div class="result-card-name">${storeName}</div>
+    <div class="result-bank">台新銀行 Richart 卡</div>
+    <div class="cube-extra-section" style="margin-top:10px;">
+      <div class="cube-extra-title">此店家出現在以下 Richart 方案</div>`;
+  uniqueMatches.forEach(m => {
+    const cashback = amount > 0 && m.rate !== null ? Math.floor(amount * m.rate / 100) : null;
+    const scheme = (richartBenefitsData.schemes || {})[m.schemeKey];
+    let expiryTag = "";
+    if (scheme && scheme.validity && scheme.validity.end) {
+      expiryTag = expiryTagHtml(isoToSlashDate(scheme.validity.end));
+    }
+    html += `<div class="cube-extra-item">
+      <div>
+        <span class="plan-name">${m.schemeName}</span>
+        ${expiryTag}
+        <div class="plan-note">${m.groupName} · 需達 Level 2 資格（自動扣繳生效或新戶60天內）</div>
+      </div>
+      <span class="plan-rate">${m.rate !== null ? m.rate + '%' : '—'}${cashback !== null ? ` / $${cashback}` : ''}</span>
+    </div>`;
+  });
+  html += `</div>
+    <div class="result-note">需切換 Richart 方案（每日限切換 1 次），以交易日 23:59 最終設定方案計算</div>
+  </div>`;
+  listEl.innerHTML = html;
+  listEl.classList.remove("hidden");
+}
+
 let currentStore = null;
 
 function onAmountInput() {
   if (!currentStore) return;
-  // 如果 currentStore 可以 resolve 到 rec 條目(含 alias),走完整流程;否則走 CUBE-only
+  // 如果 currentStore 可以 resolve 到 rec 條目(含 alias),走完整流程;否則走對應來源的 only-fallback
   if (resolveStoreEntry(currentStore)) showRecommendationFor(currentStore);
+  else if (currentOnlySource === "unicard") showUnicardOnlyRecommendation(currentStore);
+  else if (currentOnlySource === "richart") showRichartOnlyRecommendation(currentStore);
   else showCubeOnlyRecommendation(currentStore);
 }
 
@@ -2223,6 +2468,8 @@ renderQuickButtons();   // 常用按鈕(不依賴 CUBE 資料,先 render 避免�
 loadCubeBenefits().then(() => {
   renderExpiryBanner();
 });
+loadUnicardBenefits();
+loadRichartBenefits();
 </script>
 
 </body>

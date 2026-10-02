@@ -1,12 +1,14 @@
 {
   "_meta": {
     "source": "國泰世華 CUBE 卡 App 權益方案頁面",
-    "lastUpdated": "2026-04-11",
+    "lastUpdated": "2026-10-02",
     "notes": [
       "本檔案為 Hackcard 店家搜尋功能的結構化資料來源",
       "rate 單位為百分比(%),例如 3 代表 3%",
       "merchants[].type: 'merchant' 為具體店家可精準比對,'category' 為類別需額外判斷",
-      "趣旅行方案可能有被截斷的項目待補"
+      "固定回饋方案(1.2%一般/2.5%海外,2026/8/3~2026/12/31)為泛指消費非指定商家,本次未納入 JSON",
+      "童樂匯方案(2026/7/1~2026/12/31)尚未取得完整資料,本次未納入 JSON",
+      "慶生月因未取得本期新資料暫標 active:false,待補後復原"
     ]
   },
   "card": "國泰世華 CUBE 卡",
@@ -16,7 +18,7 @@
       "name": "樂饗購",
       "level": 2,
       "stars": 2,
-      "period": "2026/01/01 ~ 2026/06/30",
+      "period": "2026/01/01 ~ 2026/12/31",
       "baseRewards": [
         { "category": "一般消費", "rate": 0.3 },
         { "category": "指定購物/餐飲消費", "rate": 3 }
@@ -57,11 +59,12 @@
         { "name": "SKM Park", "category": "國內指定百貨", "rate": 3, "type": "merchant" },
         { "name": "MITSUI OUTLET PARK", "category": "國內指定百貨", "rate": 3, "type": "merchant", "note": "林口、台中港、台南" },
         { "name": "國內指定百貨品牌(UNIQLO/GU/Gap/H&M/ZARA/lululemon 等)", "category": "國內指定百貨", "rate": 3, "type": "category", "note": "需於指定百貨內消費才適用;於品牌直營店刷不計入。認定依刷卡簽單特店名稱。" },
-        { "name": "國內藥妝", "category": "藥妝", "rate": 3, "type": "category" },
         { "name": "國內餐飲", "category": "餐飲", "rate": 3, "type": "category", "note": "依 MCC code 5811/5812/5814/5462 認定,不含購買餐券(含單筆 NT$10 萬以上饗賓集團禮券),不含百貨/商場/車站/機場美食街/國道服務區美食街內餐廳、菸酒販賣商。" },
         { "name": "麥當勞", "category": "連鎖速食", "rate": 3, "type": "merchant", "note": "不適用百貨/商場/車站/機場美食街/國道服務區等實體門市。限選定樂饗購方案。" },
-        { "name": "Uber Eats", "category": "國內外送平台", "rate": 3, "type": "merchant" },
-        { "name": "foodpanda", "category": "國內外送平台", "rate": 3, "type": "merchant" }
+        { "name": "Uber Eats", "category": "國內外送平台", "rate": 3, "type": "merchant", "note": "不含 Uber One 優饗方案" },
+        { "name": "foodpanda", "category": "國內外送平台", "rate": 3, "type": "merchant" },
+        { "name": "康是美", "category": "藥妝", "rate": 3, "type": "merchant", "note": "限實體門市及網購 eShop,不含百貨/商場門市;訂單內含黃金貴金屬/儲值/票券則整單降回 0.3%" },
+        { "name": "屈臣氏", "category": "藥妝", "rate": 3, "type": "merchant", "note": "限實體門市/官方網路商店/App,不含百貨/商場門市" }
       ]
     },
     {
@@ -69,7 +72,7 @@
       "name": "玩數位",
       "level": 2,
       "stars": 2,
-      "period": "2026/01/01 ~ 2026/06/30",
+      "period": "2026/01/01 ~ 2026/12/31",
       "baseRewards": [
         { "category": "一般消費", "rate": 0.3 },
         { "category": "指定線上消費", "rate": 3 }
@@ -105,7 +108,7 @@
       "name": "趣旅行",
       "level": 2,
       "stars": 2,
-      "period": "2026/01/01 ~ 2026/06/30",
+      "period": "2026/01/01 ~ 2026/12/31",
       "baseRewards": [
         { "category": "一般消費", "rate": 0.3 },
         { "category": "指定旅遊/交通消費", "rate": 3 }
@@ -172,6 +175,7 @@
     {
       "id": "qing-sheng-yue",
       "name": "慶生月",
+      "active": false,
       "level": null,
       "stars": null,
       "period": null,
@@ -252,23 +256,155 @@
       "name": "集精選",
       "level": 2,
       "stars": 2,
-      "period": "2026/01/01 ~ 2026/06/30",
+      "period": "2026/01/01 ~ 2026/12/31",
       "currentActive": true,
       "baseRewards": [
         { "category": "一般消費", "rate": 0.3 },
         { "category": "指定品牌/生活消費", "rate": 2 }
       ],
       "merchants": [
-        { "name": "家樂福", "category": "超市", "rate": 2, "type": "merchant" },
-        { "name": "全聯", "category": "超市", "rate": 2, "type": "merchant" },
-        { "name": "LOPIA 台灣", "category": "超市", "rate": 2, "type": "merchant" },
-        { "name": "指定充電站", "category": "充電", "rate": 2, "type": "category" },
-        { "name": "車麻吉", "category": "交通", "rate": 2, "type": "merchant" },
-        { "name": "uTagGo", "category": "交通", "rate": 2, "type": "merchant" },
-        { "name": "中油直營店", "category": "加油", "rate": 2, "type": "merchant" },
-        { "name": "7-ELEVEN 實體門市", "category": "超商", "rate": 2, "type": "merchant" },
-        { "name": "全家實體門市", "category": "超商", "rate": 2, "type": "merchant" },
-        { "name": "IKEA 宜家家居", "category": "家居", "rate": 2, "type": "merchant" }
+        { "name": "U-POWER", "category": "充電站", "rate": 2, "type": "merchant" },
+        { "name": "EVOASIS", "category": "充電站", "rate": 2, "type": "merchant" },
+        { "name": "EVALUE", "category": "充電站", "rate": 2, "type": "merchant" },
+        { "name": "TAiL", "category": "充電站", "rate": 2, "type": "merchant" },
+        { "name": "iCharging", "category": "充電站", "rate": 2, "type": "merchant" },
+        { "name": "車麻吉", "category": "停車費", "rate": 2, "type": "merchant", "note": "不含加油、充電;限透過車麻吉 App 綁定卡號付款" },
+        { "name": "uTagGo", "category": "停車費", "rate": 2, "type": "merchant", "note": "不含月租停車費;限線上繳及自動繳" },
+        { "name": "家樂福（改名為萬家福）", "category": "量販超市", "rate": 2, "type": "merchant", "note": "不適用線上購物/會員換購/菸酒/代收代售/藥局藥品/嬰幼兒奶粉/團購/提貨券/儲值/虛擬儲值/美食街等" },
+        { "name": "LOPIA 台灣", "category": "量販超市", "rate": 2, "type": "merchant", "note": "不含台南新光三越小北門店、遠東 Garden City 大巨蛋店及附屬餐廳" },
+        { "name": "全聯福利中心 實體門市", "category": "量販超市", "rate": 2, "type": "merchant", "note": "不含大全聯;含 PX Pay 綁卡交易,不含全支付綁卡交易;排除線上購物/隔日達/小時達/全電商/菸酒/代收代售/禮券等" },
+        { "name": "台灣中油 直營站", "category": "加油", "rate": 2, "type": "merchant", "note": "限中油直營站,排除網路交易/儲值卡/第三方支付掃碼付款" },
+        { "name": "7-ELEVEN 實體門市", "category": "超商", "rate": 2, "type": "merchant", "note": "含 OPEN 錢包店內支付/行動隨時取,排除菸酒/代收代售/會員訂閱年費;不含高速公路服務區等場域門市" },
+        { "name": "全家便利商店 實體門市", "category": "超商", "rate": 2, "type": "merchant", "note": "含 My FamiPay 店內消費,排除菸酒/代收代售/儲值/全+1商城/行動購等;不含高速公路服務區等場域門市" },
+        { "name": "IKEA 宜家家居", "category": "生活家居", "rate": 2, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "qiu-ri-you",
+      "name": "秋日遊",
+      "level": 2,
+      "stars": 2,
+      "period": "2026/10/01 ~ 2026/11/30",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "日本實體消費/指定旅遊購物美食", "rate": 3.5 }
+      ],
+      "merchants": [
+        { "name": "日本實體消費", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "category", "note": "限日本實體門市,不含百貨/商場門市、店中櫃、快閃店、禮品卡購買或儲值、第三方支付平台、線上購物及線上預訂現場取貨等" },
+        { "name": "愛電王實體門市", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant" },
+        { "name": "大丸百貨福岡天神店", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant" },
+        { "name": "MITSUI OUTLET PARK 實體商場", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant", "note": "指日本當地商場" },
+        { "name": "台場 DiverCity Tokyo Plaza", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant" },
+        { "name": "BicCamera 集團實體門市", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant" },
+        { "name": "Apple 錢包指定交通卡(Suica/PASMO/ICOCA)", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant", "note": "限 Apple 錢包加入交通卡進行綁定儲值" },
+        { "name": "GO Taxi App", "category": "日本必逛/遊日必備", "rate": 3.5, "type": "merchant", "note": "預約叫車平台" },
+        { "name": "成田機場指定免稅店", "category": "日本四大機場免稅店", "rate": 4, "type": "merchant", "note": "Fa-So-La DUTY FREE、JAPAN DUTY FREE、JAL DUTY FREE" },
+        { "name": "關西機場指定免稅店", "category": "日本四大機場免稅店", "rate": 4, "type": "merchant", "note": "KIX DUTY FREE、TRK ARRIVAL Duty Free Shop、關西旅日記" },
+        { "name": "新千歲機場指定免稅店", "category": "日本四大機場免稅店", "rate": 4, "type": "merchant", "note": "New Chitose Airport Duty Free Shop" },
+        { "name": "福岡機場免稅店", "category": "日本四大機場免稅店", "rate": 4, "type": "merchant", "note": "FUKUOKA AIRPORT DUTY FREE SHOP" },
+        { "name": "寶可夢中心", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "5 家指定門市;限日本實體門市" },
+        { "name": "SANRIO 三麗鷗", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "14 家指定門市;限日本實體門市" },
+        { "name": "KIDDY LAND", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "6 家指定門市;限日本實體門市" },
+        { "name": "UNIQLO 實體門市", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "限日本實體門市" },
+        { "name": "Alpen GROUP 實體門市", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "限日本實體門市" },
+        { "name": "ABC-MART 實體門市", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "限日本實體門市" },
+        { "name": "Loft 實體門市", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "限日本實體門市" },
+        { "name": "3COINS", "category": "日本IP專賣店/人氣愛店", "rate": 5, "type": "merchant", "note": "15 家指定門市;限日本實體門市" },
+        { "name": "Tabelog", "category": "餐廳預約平台", "rate": 5, "type": "merchant", "note": "僅適用訂位餐廳並於平台實際付款之交易,不含現場支付餐費/取消訂位/自行收款" },
+        { "name": "TableCheck", "category": "餐廳預約平台", "rate": 5, "type": "merchant", "note": "僅適用訂位餐廳並於平台實際付款之交易,不含現場支付餐費/取消訂位/自行收款" },
+        { "name": "OMAKASE", "category": "餐廳預約平台", "rate": 5, "type": "merchant", "note": "僅適用訂位餐廳並於平台實際付款之交易,不含現場支付餐費/取消訂位/自行收款" },
+        { "name": "Klook 指定日本商品", "category": "海外旅遊規劃", "rate": 5, "type": "merchant", "note": "限指定日本商品,與一般 Klook 3% 不同" },
+        { "name": "Hotels.com 專屬網頁", "category": "海外旅遊規劃", "rate": 5, "type": "merchant", "note": "限專屬網頁訂房" },
+        { "name": "Expedia 專屬網頁", "category": "海外旅遊規劃", "rate": 5, "type": "merchant", "note": "限專屬網頁訂房" },
+        { "name": "國泰航空", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "台灣虎航", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "Agoda", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "KKday", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "ezTravel 易遊網", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "可樂旅遊", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "東南旅遊", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "Club Med", "category": "海外旅遊規劃", "rate": 3.5, "type": "merchant" },
+        { "name": "Trip.com", "category": "海外旅遊規劃", "rate": 3, "type": "merchant" },
+        { "name": "Klook", "category": "海外旅遊規劃", "rate": 3, "type": "merchant", "note": "一般消費,指定日本商品另有 5%(見上)" },
+        { "name": "JR東日本大飯店 台北", "category": "國內日系質感飯店", "rate": 5, "type": "merchant", "note": "限台灣指定飯店消費,到店付款需於實際授權日切換方案" },
+        { "name": "礁溪寒沐酒店", "category": "國內日系質感飯店", "rate": 5, "type": "merchant", "note": "限住宿,限台灣指定飯店消費,到店付款需於實際授權日切換方案" },
+        { "name": "索拉利亞西鐵飯店台北西門", "category": "國內日系質感飯店", "rate": 5, "type": "merchant", "note": "限台灣指定飯店消費,到店付款需於實際授權日切換方案" },
+        { "name": "台北大倉久和大飯店", "category": "國內日系質感飯店", "rate": 5, "type": "merchant", "note": "限台灣指定飯店消費,到店付款需於實際授權日切換方案" },
+        { "name": "日勝生加賀屋國際溫泉飯店", "category": "國內日系質感飯店", "rate": 5, "type": "merchant", "note": "限台灣指定飯店消費,到店付款需於實際授權日切換方案" },
+        { "name": "HANDS 台隆手創館 南港 LaLaport店", "category": "國內日系購物名店", "rate": 8, "type": "merchant", "note": "限台灣交易地點" },
+        { "name": "明曜百貨", "category": "國內日系購物名店", "rate": 5, "type": "merchant", "note": "限台灣交易地點" },
+        { "name": "台灣DON DON DONKI 唐吉訶德", "category": "國內日系購物名店", "rate": 5, "type": "merchant" },
+        { "name": "Xpark 水生公園", "category": "國內日系購物名店", "rate": 5, "type": "merchant" },
+        { "name": "UNITED ARROWS LTD. 官方購物網站", "category": "國內日系購物名店", "rate": 5, "type": "merchant", "note": "限品牌台灣官方網路商店" },
+        { "name": "遠東SOGO", "category": "國內日系購物名店", "rate": 3.5, "type": "merchant", "note": "含 Garden City 大巨蛋;不含店中櫃" },
+        { "name": "日藥本舖指定門市", "category": "國內日系購物名店", "rate": 3.5, "type": "merchant" },
+        { "name": "UNIQLO網路商店/直營店", "category": "國內日系購物名店", "rate": 3, "type": "merchant", "note": "限品牌台灣官方網路商店" },
+        { "name": "GU台灣網路商店", "category": "國內日系購物名店", "rate": 3, "type": "merchant", "note": "限品牌台灣官方網路商店" },
+        { "name": "MITSUI OUTLET PARK", "category": "國內日系購物名店", "rate": 3, "type": "merchant", "note": "林口、台中港、台南" },
+        { "name": "Mitsui Shopping Park LaLaport", "category": "國內日系購物名店", "rate": 3, "type": "merchant", "note": "南港、台中" },
+        { "name": "橘色涮涮屋", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant", "note": "一館/二館/台中館" },
+        { "name": "Extension 1 by橘色", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "雞湯桑指定門市", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "朝炭", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant", "note": "含官網訂位" },
+        { "name": "初魚鮨", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant", "note": "限官網訂位與指定門市" },
+        { "name": "初魚 鉄板料亭", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant", "note": "限官網訂位與指定門市" },
+        { "name": "作 天麩羅．割烹", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant", "note": "限官網訂位" },
+        { "name": "濟安鮨日本料理", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "侍燒肉", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "梵燒肉", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "元一天婦羅", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "鳥苑", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "燒鳥すみか", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "山崎", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "成蔵", "category": "國內日系美食饗宴", "rate": 8, "type": "merchant" },
+        { "name": "爭鮮迴轉壽司", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "爭鮮PLUS", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "錢都日式涮涮鍋", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "客美多咖啡", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "すき家 SUKIYA", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "必勝客", "category": "國內日系美食饗宴", "rate": 5, "type": "merchant" },
+        { "name": "摩斯漢堡", "category": "國內日系美食饗宴", "rate": 3.5, "type": "merchant", "note": "APP+實體店" },
+        { "name": "台灣壽司郎", "category": "國內日系美食饗宴", "rate": 3.5, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "tai-su-jia",
+      "name": "台塑家",
+      "level": null,
+      "stars": null,
+      "period": "2026/06/01 ~ 2026/12/31",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "指定加油/健康生活/超商消費", "rate": 2 }
+      ],
+      "merchants": [
+        { "name": "台塑石油加油站", "category": "加油站", "rate": 2, "type": "merchant", "note": "須實體卡或綁定 Apple/Samsung/Google/台塑石油Pay/Garmin Pay 支付,排除網路交易/儲值卡/第三方支付掃碼付款" },
+        { "name": "台亞加油站", "category": "加油站", "rate": 2, "type": "merchant", "note": "須實體卡或綁定 Apple/Samsung/Google/台塑石油Pay/Garmin Pay 支付,排除網路交易/儲值卡/第三方支付掃碼付款" },
+        { "name": "福懋加油站", "category": "加油站", "rate": 2, "type": "merchant", "note": "須實體卡或綁定 Apple/Samsung/Google/台塑石油Pay/Garmin Pay 支付,排除網路交易/儲值卡/第三方支付掃碼付款" },
+        { "name": "統一速邁樂加油站", "category": "加油站", "rate": 2, "type": "merchant", "note": "限本島;須實體卡或綁定指定支付,排除網路交易/儲值卡/第三方支付掃碼付款" },
+        { "name": "台塑生醫實體門市", "category": "健康生活", "rate": 2, "type": "merchant" },
+        { "name": "長庚生技實體門市", "category": "健康生活", "rate": 2, "type": "merchant" },
+        { "name": "台塑蔬菜實體門市", "category": "健康生活", "rate": 2, "type": "merchant" },
+        { "name": "台塑購物網", "category": "健康生活", "rate": 2, "type": "merchant" },
+        { "name": "7-ELEVEN 實體門市", "category": "指定超商", "rate": 2, "type": "merchant" },
+        { "name": "全家便利商店 實體門市", "category": "指定超商", "rate": 2, "type": "merchant" },
+        { "name": "萊爾富實體門市", "category": "指定超商", "rate": 2, "type": "merchant" }
+      ]
+    },
+    {
+      "id": "quan-zhi-fu",
+      "name": "全支付",
+      "level": null,
+      "stars": null,
+      "period": "2026/04/22 ~ 2026/12/31",
+      "baseRewards": [
+        { "category": "一般消費", "rate": 0.3 },
+        { "category": "全支付綁定指定消費", "rate": 2 }
+      ],
+      "merchants": [
+        { "name": "全聯福利中心", "category": "全支付合作通路", "rate": 2, "type": "merchant", "note": "須以全支付綁定 CUBE 卡刷卡消費,未用全支付綁卡則無回饋;排除繳稅繳費/跨境支付/儲值/公益捐款/乘車碼/菸酒/代收代售/嬰兒奶粉/禮券等" },
+        { "name": "大全聯", "category": "全支付合作通路", "rate": 2, "type": "merchant", "note": "須以全支付綁定 CUBE 卡刷卡消費,未用全支付綁卡則無回饋;排除繳稅繳費/跨境支付/儲值/公益捐款/乘車碼/菸酒/代收代售/嬰兒奶粉/禮券等" },
+        { "name": "全支付國內合作通路", "category": "全支付合作通路", "rate": 2, "type": "category", "note": "須以全支付綁定 CUBE 卡刷卡消費,未用全支付綁卡則無回饋;排除繳稅繳費/跨境支付/儲值/公益捐款/乘車碼/菸酒/代收代售/嬰兒奶粉/禮券等" }
       ]
     }
   ]
