@@ -48,7 +48,9 @@
   ],
   "reward_currency": {
     "name": "E.SUN e point",
-    "value_twd_per_point": 1
+    "value_twd_per_point": 1,
+    "redemption_note": "玉山e point折抵未出帳消費最高可折抵30%，詳見玉山官網e point使用說明",
+    "redemption_verified": "user_provided_2026-10-02"
   },
   "runtime_assumption": {
     "selected_plan": "UP",
@@ -324,7 +326,16 @@
     },
     "fuel_transport": {
       "CPC": "direct-operated stations only; CPC Pay allowed",
-      "THSR_TRA": "official website/app/station counter/ticket machine only; excludes convenience-store payment, onboard food, gate tap/e-ticket auto top-up, package tickets",
+      "THSR_TRA": {
+        "eligible_channels": "official website/app/station counter/ticket machine only; excludes convenience-store payment, onboard food, gate tap/e-ticket auto top-up, package tickets",
+        "official_campaign_period": {
+          "start": "2026-07-01",
+          "end": "2026-12-31"
+        },
+        "official_campaign_text": "玉山Unicard購買高鐵車票，最高享4.5%玉山e point回饋（一般消費最高1%需同時申請帳單e化及台幣帳戶自動扣繳卡費＋百大指定消費加碼最高3.5%）",
+        "note": "此為官方行銷活動對既有百大指定消費(fuel_transport/THSR_TRA)+一般消費規則的組合說明，非額外獨立加碼",
+        "verified": "user_provided_2026-10-02"
+      },
       "Uber": "domestic ride and TWD transaction only"
     },
     "air_travel": {

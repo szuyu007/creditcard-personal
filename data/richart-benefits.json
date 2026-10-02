@@ -278,7 +278,9 @@
       },
       "special_payment_constraints": {
         "全家": ["TAISHIN_PAY"],
-        "7-11": ["TAISHIN_PAY"]
+        "7-11": ["TAISHIN_PAY"],
+        "臺鐵": ["PHYSICAL_CARD", "ONLINE_CARD_NUMBER", "TAISHIN_PAY", "APPLE_PAY", "GOOGLE_WALLET", "SAMSUNG_PAY"],
+        "高鐵": ["PHYSICAL_CARD", "ONLINE_CARD_NUMBER", "TAISHIN_PAY", "APPLE_PAY", "GOOGLE_WALLET", "SAMSUNG_PAY"]
       },
       "category_history_note": "加油充電類別於2026年由「好饗刷」改列至「天天刷」，為官方規則變更（非資料來源矛盾），並新增USPACE、Autopass(車麻吉)兩通路"
     },
@@ -461,6 +463,36 @@
         "scheme_in": ["PAY", "DAILY"]
       },
       "behavior": "scheme reward applies despite general-spend exclusion"
+    }
+  ],
+  "category_specific_rules": {
+    "daily_shopping": {
+      "domestic_only": true,
+      "channels": ["physical_store", "official_website", "official_app"]
+    },
+    "fuel_transport": {
+      "CPC": "direct-operated stations only; CPC Pay allowed",
+      "THSR_TRA": {
+        "eligible_channels": "official website/app/station counter/ticket machine only; excludes convenience-store payment, onboard food, gate tap/e-ticket auto top-up, package tickets",
+        "eligible_payment_methods": ["PHYSICAL_CARD", "ONLINE_CARD_NUMBER", "TAISHIN_PAY", "APPLE_PAY", "GOOGLE_WALLET", "SAMSUNG_PAY"],
+        "ineligible_payment_methods": ["LINE_PAY", "FAMILY_PAY_PLUS"],
+        "fallback_if_ineligible_payment_or_scheme": "general_spend_0.3%",
+        "note": "若未切換天天刷方案、或使用LINE Pay等非指定支付工具，回饋降為一般消費0.3%",
+        "verified": "confirmed_by_user_2026-10-02"
+      },
+      "Uber": "domestic ride and TWD transaction only"
+    }
+  },
+  "current_extra_promotions_unrelated_to_reward_scheme": [
+    {
+      "name": "高鐵商務艙限量升等優惠",
+      "period": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      },
+      "benefit": "刷指定台新信用卡購買高鐵票，享NT$450/張商務艙升等專案優惠價",
+      "scope": "限量，非信用卡回饋機制，為高鐵與台新聯合票務優惠",
+      "reason_separate": "Ticket upgrade pricing promotion, not a Richart Point reward rule; independent of scheme switching."
     }
   ],
   "merchant_recognition": {
